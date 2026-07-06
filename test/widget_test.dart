@@ -10,6 +10,10 @@ import 'package:rpg_task/features/skills/data/skill_repository.dart';
 void main() {
   testWidgets('Приложение запускается и показывает нижнюю навигацию',
       (WidgetTester tester) async {
+    // Фиксируем русскую локаль, чтобы подписи навигации были предсказуемы.
+    tester.platformDispatcher.localeTestValue = const Locale('ru');
+    addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -19,7 +23,7 @@ void main() {
           axesStreamProvider
               .overrideWith((ref) => Stream.value(const <SkillAxe>[])),
         ],
-        child: const RpgTaskApp(),
+        child: RpgTaskApp(),
       ),
     );
     await tester.pump();

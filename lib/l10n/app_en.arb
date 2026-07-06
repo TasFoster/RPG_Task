@@ -1,0 +1,18 @@
+{
+  "@@locale": "en",
+  "appTitle": "RPG Tracker",
+  "navTasks": "Tasks",
+  "navHabits": "Habits",
+  "navSkills": "Skills",
+  "navCharacter": "Hero",
+  "navSettings": "Settings",
+  "onboardWelcomeTitle": "Welcome, seeker!",
+  "onboardWelcomeBody": "Turn your tasks, habits and goals into an adventure with XP, gold and gems.",
+  "onboardSkillsTitle": "Skill rose",
+  "onboardSkillsBody": "Level up skill axes — health, sport, study and more. Completed activities grow your hero.",
+  "onboardBossTitle": "Defeat bosses",
+  "onboardBossBody": "Break big goals into steps and damage bosses. Claim rewards from quests and achievements.",
+  "onboardStart": "Start the adventure",
+  "onboardNext": "Next",
+  "onboardSkip": "Skip"
+}

@@ -1,0 +1,19 @@
+{
+  "@@locale": "ru",
+  "appTitle": "RPG Трекер",
+  "@appTitle": { "description": "Название приложения" },
+  "navTasks": "Задачи",
+  "navHabits": "Привычки",
+  "navSkills": "Навыки",
+  "navCharacter": "Герой",
+  "navSettings": "Настройки",
+  "onboardWelcomeTitle": "Добро пожаловать, искатель!",
+  "onboardWelcomeBody": "Превратите задачи, привычки и цели в приключение с опытом, золотом и кристаллами.",
+  "onboardSkillsTitle": "Роза навыков",
+  "onboardSkillsBody": "Прокачивайте оси навыков — здоровье, спорт, учёбу и другие. Выполненные дела растят вашего героя.",
+  "onboardBossTitle": "Победите боссов",
+  "onboardBossBody": "Разбивайте большие цели на шаги и наносите урон боссам. Забирайте награды за квесты и достижения.",
+  "onboardStart": "Начать приключение",
+  "onboardNext": "Далее",
+  "onboardSkip": "Пропустить"
+}

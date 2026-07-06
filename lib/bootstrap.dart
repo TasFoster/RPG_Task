@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/app.dart';
+import 'app/router/app_router.dart';
 import 'core/database/app_database.dart';
 import 'core/database/database_provider.dart';
 import 'core/database/seed.dart';
 import 'core/notifications/notification_service.dart';
+import 'features/onboarding/data/onboarding_service.dart';
 
 /// Инициализация приложения до запуска UI.
 Future<void> bootstrap() async {
@@ -25,13 +27,19 @@ Future<void> bootstrap() async {
 
   // TODO(Фаза 2): инициализация Supabase.
 
+  // Первый запуск → онбординг.
+  final seenOnboarding = await OnboardingService.hasSeen();
+  final router = buildAppRouter(
+    initialLocation: seenOnboarding ? '/tasks' : '/onboarding',
+  );
+
   runApp(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(db),
         notificationServiceProvider.overrideWithValue(notifications),
       ],
-      child: const RpgTaskApp(),
+      child: RpgTaskApp(router: router),
     ),
   );
 }

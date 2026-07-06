@@ -11,12 +11,18 @@ import '../../features/goals/presentation/goal_detail_screen.dart';
 import '../../features/quests/presentation/quests_screen.dart';
 import '../../features/achievements/presentation/achievements_screen.dart';
 import '../../features/shop/presentation/shop_screen.dart';
+import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../widgets/home_shell.dart';
 
-/// Конфигурация навигации приложения.
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/tasks',
+/// Строит конфигурацию навигации. [initialLocation] задаётся при старте
+/// (например, '/onboarding' при первом запуске).
+GoRouter buildAppRouter({String initialLocation = '/tasks'}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingScreen(),
+    ),
     // Полноэкранные push-роуты (поверх нижней навигации).
     GoRoute(
       path: '/pomodoro',
