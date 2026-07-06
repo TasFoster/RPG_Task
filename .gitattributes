@@ -1,0 +1,12 @@
+# Нормализация окончаний строк: в репозитории — LF, в рабочей копии — как есть.
+* text=auto eol=lf
+
+# Бинарные файлы — без нормализации.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.jks binary
+*.keystore binary
