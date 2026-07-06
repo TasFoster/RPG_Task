@@ -721,6 +721,17 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _reminderAtMeta = const VerificationMeta(
+    'reminderAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> reminderAt = GeneratedColumn<DateTime>(
+    'reminder_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<TaskStatus, int> status =
       GeneratedColumn<int>(
@@ -790,6 +801,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     difficulty,
     estimatedMinutes,
     dueAt,
+    reminderAt,
     status,
     completedAt,
     xpAwarded,
@@ -864,6 +876,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
       context.handle(
         _dueAtMeta,
         dueAt.isAcceptableOrUnknown(data['due_at']!, _dueAtMeta),
+      );
+    }
+    if (data.containsKey('reminder_at')) {
+      context.handle(
+        _reminderAtMeta,
+        reminderAt.isAcceptableOrUnknown(data['reminder_at']!, _reminderAtMeta),
       );
     }
     if (data.containsKey('completed_at')) {
@@ -947,6 +965,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}due_at'],
       ),
+      reminderAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}reminder_at'],
+      ),
       status: $TasksTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
@@ -994,6 +1016,7 @@ class Task extends DataClass implements Insertable<Task> {
   final Difficulty difficulty;
   final int estimatedMinutes;
   final DateTime? dueAt;
+  final DateTime? reminderAt;
   final TaskStatus status;
   final DateTime? completedAt;
   final int xpAwarded;
@@ -1010,6 +1033,7 @@ class Task extends DataClass implements Insertable<Task> {
     required this.difficulty,
     required this.estimatedMinutes,
     this.dueAt,
+    this.reminderAt,
     required this.status,
     this.completedAt,
     required this.xpAwarded,
@@ -1038,6 +1062,9 @@ class Task extends DataClass implements Insertable<Task> {
     map['estimated_minutes'] = Variable<int>(estimatedMinutes);
     if (!nullToAbsent || dueAt != null) {
       map['due_at'] = Variable<DateTime>(dueAt);
+    }
+    if (!nullToAbsent || reminderAt != null) {
+      map['reminder_at'] = Variable<DateTime>(reminderAt);
     }
     {
       map['status'] = Variable<int>($TasksTable.$converterstatus.toSql(status));
@@ -1069,6 +1096,9 @@ class Task extends DataClass implements Insertable<Task> {
       dueAt: dueAt == null && nullToAbsent
           ? const Value.absent()
           : Value(dueAt),
+      reminderAt: reminderAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderAt),
       status: Value(status),
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
@@ -1097,6 +1127,7 @@ class Task extends DataClass implements Insertable<Task> {
       ),
       estimatedMinutes: serializer.fromJson<int>(json['estimatedMinutes']),
       dueAt: serializer.fromJson<DateTime?>(json['dueAt']),
+      reminderAt: serializer.fromJson<DateTime?>(json['reminderAt']),
       status: $TasksTable.$converterstatus.fromJson(
         serializer.fromJson<int>(json['status']),
       ),
@@ -1122,6 +1153,7 @@ class Task extends DataClass implements Insertable<Task> {
       ),
       'estimatedMinutes': serializer.toJson<int>(estimatedMinutes),
       'dueAt': serializer.toJson<DateTime?>(dueAt),
+      'reminderAt': serializer.toJson<DateTime?>(reminderAt),
       'status': serializer.toJson<int>(
         $TasksTable.$converterstatus.toJson(status),
       ),
@@ -1143,6 +1175,7 @@ class Task extends DataClass implements Insertable<Task> {
     Difficulty? difficulty,
     int? estimatedMinutes,
     Value<DateTime?> dueAt = const Value.absent(),
+    Value<DateTime?> reminderAt = const Value.absent(),
     TaskStatus? status,
     Value<DateTime?> completedAt = const Value.absent(),
     int? xpAwarded,
@@ -1159,6 +1192,7 @@ class Task extends DataClass implements Insertable<Task> {
     difficulty: difficulty ?? this.difficulty,
     estimatedMinutes: estimatedMinutes ?? this.estimatedMinutes,
     dueAt: dueAt.present ? dueAt.value : this.dueAt,
+    reminderAt: reminderAt.present ? reminderAt.value : this.reminderAt,
     status: status ?? this.status,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
     xpAwarded: xpAwarded ?? this.xpAwarded,
@@ -1181,6 +1215,9 @@ class Task extends DataClass implements Insertable<Task> {
           ? data.estimatedMinutes.value
           : this.estimatedMinutes,
       dueAt: data.dueAt.present ? data.dueAt.value : this.dueAt,
+      reminderAt: data.reminderAt.present
+          ? data.reminderAt.value
+          : this.reminderAt,
       status: data.status.present ? data.status.value : this.status,
       completedAt: data.completedAt.present
           ? data.completedAt.value
@@ -1206,6 +1243,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('difficulty: $difficulty, ')
           ..write('estimatedMinutes: $estimatedMinutes, ')
           ..write('dueAt: $dueAt, ')
+          ..write('reminderAt: $reminderAt, ')
           ..write('status: $status, ')
           ..write('completedAt: $completedAt, ')
           ..write('xpAwarded: $xpAwarded, ')
@@ -1227,6 +1265,7 @@ class Task extends DataClass implements Insertable<Task> {
     difficulty,
     estimatedMinutes,
     dueAt,
+    reminderAt,
     status,
     completedAt,
     xpAwarded,
@@ -1247,6 +1286,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.difficulty == this.difficulty &&
           other.estimatedMinutes == this.estimatedMinutes &&
           other.dueAt == this.dueAt &&
+          other.reminderAt == this.reminderAt &&
           other.status == this.status &&
           other.completedAt == this.completedAt &&
           other.xpAwarded == this.xpAwarded &&
@@ -1265,6 +1305,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<Difficulty> difficulty;
   final Value<int> estimatedMinutes;
   final Value<DateTime?> dueAt;
+  final Value<DateTime?> reminderAt;
   final Value<TaskStatus> status;
   final Value<DateTime?> completedAt;
   final Value<int> xpAwarded;
@@ -1282,6 +1323,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.difficulty = const Value.absent(),
     this.estimatedMinutes = const Value.absent(),
     this.dueAt = const Value.absent(),
+    this.reminderAt = const Value.absent(),
     this.status = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.xpAwarded = const Value.absent(),
@@ -1300,6 +1342,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.difficulty = const Value.absent(),
     this.estimatedMinutes = const Value.absent(),
     this.dueAt = const Value.absent(),
+    this.reminderAt = const Value.absent(),
     this.status = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.xpAwarded = const Value.absent(),
@@ -1319,6 +1362,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<int>? difficulty,
     Expression<int>? estimatedMinutes,
     Expression<DateTime>? dueAt,
+    Expression<DateTime>? reminderAt,
     Expression<int>? status,
     Expression<DateTime>? completedAt,
     Expression<int>? xpAwarded,
@@ -1337,6 +1381,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (difficulty != null) 'difficulty': difficulty,
       if (estimatedMinutes != null) 'estimated_minutes': estimatedMinutes,
       if (dueAt != null) 'due_at': dueAt,
+      if (reminderAt != null) 'reminder_at': reminderAt,
       if (status != null) 'status': status,
       if (completedAt != null) 'completed_at': completedAt,
       if (xpAwarded != null) 'xp_awarded': xpAwarded,
@@ -1357,6 +1402,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<Difficulty>? difficulty,
     Value<int>? estimatedMinutes,
     Value<DateTime?>? dueAt,
+    Value<DateTime?>? reminderAt,
     Value<TaskStatus>? status,
     Value<DateTime?>? completedAt,
     Value<int>? xpAwarded,
@@ -1375,6 +1421,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       difficulty: difficulty ?? this.difficulty,
       estimatedMinutes: estimatedMinutes ?? this.estimatedMinutes,
       dueAt: dueAt ?? this.dueAt,
+      reminderAt: reminderAt ?? this.reminderAt,
       status: status ?? this.status,
       completedAt: completedAt ?? this.completedAt,
       xpAwarded: xpAwarded ?? this.xpAwarded,
@@ -1419,6 +1466,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (dueAt.present) {
       map['due_at'] = Variable<DateTime>(dueAt.value);
     }
+    if (reminderAt.present) {
+      map['reminder_at'] = Variable<DateTime>(reminderAt.value);
+    }
     if (status.present) {
       map['status'] = Variable<int>(
         $TasksTable.$converterstatus.toSql(status.value),
@@ -1455,6 +1505,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('difficulty: $difficulty, ')
           ..write('estimatedMinutes: $estimatedMinutes, ')
           ..write('dueAt: $dueAt, ')
+          ..write('reminderAt: $reminderAt, ')
           ..write('status: $status, ')
           ..write('completedAt: $completedAt, ')
           ..write('xpAwarded: $xpAwarded, ')
@@ -1595,6 +1646,17 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _reminderMinutesMeta = const VerificationMeta(
+    'reminderMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> reminderMinutes = GeneratedColumn<int>(
+    'reminder_minutes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _lastCompletedAtMeta = const VerificationMeta(
     'lastCompletedAt',
   );
@@ -1632,6 +1694,7 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     difficulty,
     streakCurrent,
     streakBest,
+    reminderMinutes,
     lastCompletedAt,
     createdAt,
   ];
@@ -1697,6 +1760,15 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
       context.handle(
         _streakBestMeta,
         streakBest.isAcceptableOrUnknown(data['streak_best']!, _streakBestMeta),
+      );
+    }
+    if (data.containsKey('reminder_minutes')) {
+      context.handle(
+        _reminderMinutesMeta,
+        reminderMinutes.isAcceptableOrUnknown(
+          data['reminder_minutes']!,
+          _reminderMinutesMeta,
+        ),
       );
     }
     if (data.containsKey('last_completed_at')) {
@@ -1773,6 +1845,10 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
         DriftSqlType.int,
         data['${effectivePrefix}streak_best'],
       )!,
+      reminderMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_minutes'],
+      ),
       lastCompletedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_completed_at'],
@@ -1809,6 +1885,7 @@ class Habit extends DataClass implements Insertable<Habit> {
   final Difficulty difficulty;
   final int streakCurrent;
   final int streakBest;
+  final int? reminderMinutes;
   final DateTime? lastCompletedAt;
   final DateTime createdAt;
   const Habit({
@@ -1823,6 +1900,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     required this.difficulty,
     required this.streakCurrent,
     required this.streakBest,
+    this.reminderMinutes,
     this.lastCompletedAt,
     required this.createdAt,
   });
@@ -1852,6 +1930,9 @@ class Habit extends DataClass implements Insertable<Habit> {
     }
     map['streak_current'] = Variable<int>(streakCurrent);
     map['streak_best'] = Variable<int>(streakBest);
+    if (!nullToAbsent || reminderMinutes != null) {
+      map['reminder_minutes'] = Variable<int>(reminderMinutes);
+    }
     if (!nullToAbsent || lastCompletedAt != null) {
       map['last_completed_at'] = Variable<DateTime>(lastCompletedAt);
     }
@@ -1874,6 +1955,9 @@ class Habit extends DataClass implements Insertable<Habit> {
       difficulty: Value(difficulty),
       streakCurrent: Value(streakCurrent),
       streakBest: Value(streakBest),
+      reminderMinutes: reminderMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reminderMinutes),
       lastCompletedAt: lastCompletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(lastCompletedAt),
@@ -1904,6 +1988,7 @@ class Habit extends DataClass implements Insertable<Habit> {
       ),
       streakCurrent: serializer.fromJson<int>(json['streakCurrent']),
       streakBest: serializer.fromJson<int>(json['streakBest']),
+      reminderMinutes: serializer.fromJson<int?>(json['reminderMinutes']),
       lastCompletedAt: serializer.fromJson<DateTime?>(json['lastCompletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -1927,6 +2012,7 @@ class Habit extends DataClass implements Insertable<Habit> {
       ),
       'streakCurrent': serializer.toJson<int>(streakCurrent),
       'streakBest': serializer.toJson<int>(streakBest),
+      'reminderMinutes': serializer.toJson<int?>(reminderMinutes),
       'lastCompletedAt': serializer.toJson<DateTime?>(lastCompletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -1944,6 +2030,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     Difficulty? difficulty,
     int? streakCurrent,
     int? streakBest,
+    Value<int?> reminderMinutes = const Value.absent(),
     Value<DateTime?> lastCompletedAt = const Value.absent(),
     DateTime? createdAt,
   }) => Habit(
@@ -1958,6 +2045,9 @@ class Habit extends DataClass implements Insertable<Habit> {
     difficulty: difficulty ?? this.difficulty,
     streakCurrent: streakCurrent ?? this.streakCurrent,
     streakBest: streakBest ?? this.streakBest,
+    reminderMinutes: reminderMinutes.present
+        ? reminderMinutes.value
+        : this.reminderMinutes,
     lastCompletedAt: lastCompletedAt.present
         ? lastCompletedAt.value
         : this.lastCompletedAt,
@@ -1982,6 +2072,9 @@ class Habit extends DataClass implements Insertable<Habit> {
       streakBest: data.streakBest.present
           ? data.streakBest.value
           : this.streakBest,
+      reminderMinutes: data.reminderMinutes.present
+          ? data.reminderMinutes.value
+          : this.reminderMinutes,
       lastCompletedAt: data.lastCompletedAt.present
           ? data.lastCompletedAt.value
           : this.lastCompletedAt,
@@ -2003,6 +2096,7 @@ class Habit extends DataClass implements Insertable<Habit> {
           ..write('difficulty: $difficulty, ')
           ..write('streakCurrent: $streakCurrent, ')
           ..write('streakBest: $streakBest, ')
+          ..write('reminderMinutes: $reminderMinutes, ')
           ..write('lastCompletedAt: $lastCompletedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2022,6 +2116,7 @@ class Habit extends DataClass implements Insertable<Habit> {
     difficulty,
     streakCurrent,
     streakBest,
+    reminderMinutes,
     lastCompletedAt,
     createdAt,
   );
@@ -2040,6 +2135,7 @@ class Habit extends DataClass implements Insertable<Habit> {
           other.difficulty == this.difficulty &&
           other.streakCurrent == this.streakCurrent &&
           other.streakBest == this.streakBest &&
+          other.reminderMinutes == this.reminderMinutes &&
           other.lastCompletedAt == this.lastCompletedAt &&
           other.createdAt == this.createdAt);
 }
@@ -2056,6 +2152,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
   final Value<Difficulty> difficulty;
   final Value<int> streakCurrent;
   final Value<int> streakBest;
+  final Value<int?> reminderMinutes;
   final Value<DateTime?> lastCompletedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -2071,6 +2168,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     this.difficulty = const Value.absent(),
     this.streakCurrent = const Value.absent(),
     this.streakBest = const Value.absent(),
+    this.reminderMinutes = const Value.absent(),
     this.lastCompletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2087,6 +2185,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     this.difficulty = const Value.absent(),
     this.streakCurrent = const Value.absent(),
     this.streakBest = const Value.absent(),
+    this.reminderMinutes = const Value.absent(),
     this.lastCompletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2104,6 +2203,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Expression<int>? difficulty,
     Expression<int>? streakCurrent,
     Expression<int>? streakBest,
+    Expression<int>? reminderMinutes,
     Expression<DateTime>? lastCompletedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -2120,6 +2220,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       if (difficulty != null) 'difficulty': difficulty,
       if (streakCurrent != null) 'streak_current': streakCurrent,
       if (streakBest != null) 'streak_best': streakBest,
+      if (reminderMinutes != null) 'reminder_minutes': reminderMinutes,
       if (lastCompletedAt != null) 'last_completed_at': lastCompletedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -2138,6 +2239,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Value<Difficulty>? difficulty,
     Value<int>? streakCurrent,
     Value<int>? streakBest,
+    Value<int?>? reminderMinutes,
     Value<DateTime?>? lastCompletedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -2154,6 +2256,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       difficulty: difficulty ?? this.difficulty,
       streakCurrent: streakCurrent ?? this.streakCurrent,
       streakBest: streakBest ?? this.streakBest,
+      reminderMinutes: reminderMinutes ?? this.reminderMinutes,
       lastCompletedAt: lastCompletedAt ?? this.lastCompletedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -2202,6 +2305,9 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     if (streakBest.present) {
       map['streak_best'] = Variable<int>(streakBest.value);
     }
+    if (reminderMinutes.present) {
+      map['reminder_minutes'] = Variable<int>(reminderMinutes.value);
+    }
     if (lastCompletedAt.present) {
       map['last_completed_at'] = Variable<DateTime>(lastCompletedAt.value);
     }
@@ -2228,6 +2334,7 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
           ..write('difficulty: $difficulty, ')
           ..write('streakCurrent: $streakCurrent, ')
           ..write('streakBest: $streakBest, ')
+          ..write('reminderMinutes: $reminderMinutes, ')
           ..write('lastCompletedAt: $lastCompletedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -4367,6 +4474,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<Difficulty> difficulty,
       Value<int> estimatedMinutes,
       Value<DateTime?> dueAt,
+      Value<DateTime?> reminderAt,
       Value<TaskStatus> status,
       Value<DateTime?> completedAt,
       Value<int> xpAwarded,
@@ -4386,6 +4494,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<Difficulty> difficulty,
       Value<int> estimatedMinutes,
       Value<DateTime?> dueAt,
+      Value<DateTime?> reminderAt,
       Value<TaskStatus> status,
       Value<DateTime?> completedAt,
       Value<int> xpAwarded,
@@ -4467,6 +4576,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<DateTime> get dueAt => $composableBuilder(
     column: $table.dueAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4574,6 +4688,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -4664,6 +4783,11 @@ class $$TasksTableAnnotationComposer
   GeneratedColumn<DateTime> get dueAt =>
       $composableBuilder(column: $table.dueAt, builder: (column) => column);
 
+  GeneratedColumn<DateTime> get reminderAt => $composableBuilder(
+    column: $table.reminderAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<TaskStatus, int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
@@ -4745,6 +4869,7 @@ class $$TasksTableTableManager
                 Value<Difficulty> difficulty = const Value.absent(),
                 Value<int> estimatedMinutes = const Value.absent(),
                 Value<DateTime?> dueAt = const Value.absent(),
+                Value<DateTime?> reminderAt = const Value.absent(),
                 Value<TaskStatus> status = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<int> xpAwarded = const Value.absent(),
@@ -4762,6 +4887,7 @@ class $$TasksTableTableManager
                 difficulty: difficulty,
                 estimatedMinutes: estimatedMinutes,
                 dueAt: dueAt,
+                reminderAt: reminderAt,
                 status: status,
                 completedAt: completedAt,
                 xpAwarded: xpAwarded,
@@ -4781,6 +4907,7 @@ class $$TasksTableTableManager
                 Value<Difficulty> difficulty = const Value.absent(),
                 Value<int> estimatedMinutes = const Value.absent(),
                 Value<DateTime?> dueAt = const Value.absent(),
+                Value<DateTime?> reminderAt = const Value.absent(),
                 Value<TaskStatus> status = const Value.absent(),
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<int> xpAwarded = const Value.absent(),
@@ -4798,6 +4925,7 @@ class $$TasksTableTableManager
                 difficulty: difficulty,
                 estimatedMinutes: estimatedMinutes,
                 dueAt: dueAt,
+                reminderAt: reminderAt,
                 status: status,
                 completedAt: completedAt,
                 xpAwarded: xpAwarded,
@@ -4883,6 +5011,7 @@ typedef $$HabitsTableCreateCompanionBuilder =
       Value<Difficulty> difficulty,
       Value<int> streakCurrent,
       Value<int> streakBest,
+      Value<int?> reminderMinutes,
       Value<DateTime?> lastCompletedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -4900,6 +5029,7 @@ typedef $$HabitsTableUpdateCompanionBuilder =
       Value<Difficulty> difficulty,
       Value<int> streakCurrent,
       Value<int> streakBest,
+      Value<int?> reminderMinutes,
       Value<DateTime?> lastCompletedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -5004,6 +5134,11 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<int> get streakBest => $composableBuilder(
     column: $table.streakBest,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reminderMinutes => $composableBuilder(
+    column: $table.reminderMinutes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5125,6 +5260,11 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get reminderMinutes => $composableBuilder(
+    column: $table.reminderMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get lastCompletedAt => $composableBuilder(
     column: $table.lastCompletedAt,
     builder: (column) => ColumnOrderings(column),
@@ -5202,6 +5342,11 @@ class $$HabitsTableAnnotationComposer
 
   GeneratedColumn<int> get streakBest => $composableBuilder(
     column: $table.streakBest,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reminderMinutes => $composableBuilder(
+    column: $table.reminderMinutes,
     builder: (column) => column,
   );
 
@@ -5301,6 +5446,7 @@ class $$HabitsTableTableManager
                 Value<Difficulty> difficulty = const Value.absent(),
                 Value<int> streakCurrent = const Value.absent(),
                 Value<int> streakBest = const Value.absent(),
+                Value<int?> reminderMinutes = const Value.absent(),
                 Value<DateTime?> lastCompletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -5316,6 +5462,7 @@ class $$HabitsTableTableManager
                 difficulty: difficulty,
                 streakCurrent: streakCurrent,
                 streakBest: streakBest,
+                reminderMinutes: reminderMinutes,
                 lastCompletedAt: lastCompletedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -5333,6 +5480,7 @@ class $$HabitsTableTableManager
                 Value<Difficulty> difficulty = const Value.absent(),
                 Value<int> streakCurrent = const Value.absent(),
                 Value<int> streakBest = const Value.absent(),
+                Value<int?> reminderMinutes = const Value.absent(),
                 Value<DateTime?> lastCompletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -5348,6 +5496,7 @@ class $$HabitsTableTableManager
                 difficulty: difficulty,
                 streakCurrent: streakCurrent,
                 streakBest: streakBest,
+                reminderMinutes: reminderMinutes,
                 lastCompletedAt: lastCompletedAt,
                 createdAt: createdAt,
                 rowid: rowid,

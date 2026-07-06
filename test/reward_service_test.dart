@@ -6,11 +6,14 @@ import 'package:rpg_task/core/database/seed.dart';
 import 'package:rpg_task/core/gamification/balance.dart';
 import 'package:rpg_task/core/gamification/reward_service.dart';
 import 'package:rpg_task/core/models/enums.dart';
+import 'package:rpg_task/core/notifications/notification_service.dart';
 import 'package:rpg_task/features/habits/data/habit_repository.dart';
 import 'package:rpg_task/features/tasks/data/task_repository.dart';
 
 void main() {
   late AppDatabase db;
+  // Уведомления отключены — тесты не трогают нативные плагины.
+  final notifications = NotificationService(forceEnabled: false);
 
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
@@ -32,7 +35,7 @@ void main() {
   });
 
   test('завершение задачи начисляет опыт и золото профилю', () async {
-    final repo = TaskRepository(db);
+    final repo = TaskRepository(db, notifications);
     await repo.addTask(title: 'Тест', difficulty: Difficulty.hard);
     final tasks = await repo.watchTasks().first;
     expect(tasks, hasLength(1));
@@ -56,7 +59,7 @@ void main() {
 
   test('опыт задачи начисляется связанной оси навыка', () async {
     final axis = (await db.select(db.skillAxes).get()).first;
-    final repo = TaskRepository(db);
+    final repo = TaskRepository(db, notifications);
     await repo.addTask(
         title: 'С осью', difficulty: Difficulty.medium, axisId: axis.id);
     final task = (await repo.watchTasks().first).first;
@@ -70,7 +73,7 @@ void main() {
   });
 
   test('завершение привычки создаёт лог и начинает стрик', () async {
-    final repo = HabitRepository(db);
+    final repo = HabitRepository(db, notifications);
     await repo.addHabit(title: 'Зарядка', difficulty: Difficulty.easy);
     final habit = (await repo.watchHabits().first).first;
 
@@ -86,7 +89,7 @@ void main() {
   });
 
   test('повторное выполнение привычки в тот же день не даёт награду', () async {
-    final repo = HabitRepository(db);
+    final repo = HabitRepository(db, notifications);
     await repo.addHabit(title: 'Чтение', difficulty: Difficulty.easy);
     final habit = (await repo.watchHabits().first).first;
 

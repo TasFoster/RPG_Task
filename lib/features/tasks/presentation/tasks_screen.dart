@@ -67,6 +67,8 @@ class _TaskTile extends ConsumerWidget {
 
     Future<void> complete() async {
       final reward = await ref.read(rewardServiceProvider).completeTask(task);
+      // Задача выполнена — разовое напоминание больше не нужно.
+      await ref.read(taskRepositoryProvider).cancelReminder(task.id);
       if (context.mounted) showRewardSnackBar(context, reward);
     }
 

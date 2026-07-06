@@ -6,13 +6,15 @@ import '../../../core/database/app_database.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/gamification/balance.dart';
 import '../../../core/models/enums.dart';
+import '../../../core/notifications/notification_service.dart';
 
 const _uuid = Uuid();
 
 /// Доступ к привычкам в локальной БД.
 class HabitRepository {
   final AppDatabase db;
-  HabitRepository(this.db);
+  final NotificationService notifications;
+  HabitRepository(this.db, this.notifications);
 
   Stream<List<Habit>> watchHabits() {
     return (db.select(db.habits)
@@ -30,32 +32,46 @@ class HabitRepository {
     HabitType type = HabitType.positive,
     Frequency frequency = Frequency.daily,
     Difficulty difficulty = Difficulty.auto,
-  }) {
-    return db.into(db.habits).insert(
+    int? reminderMinutes,
+  }) async {
+    final id = _uuid.v4();
+    await db.into(db.habits).insert(
           HabitsCompanion.insert(
-            id: _uuid.v4(),
+            id: id,
             title: title,
             axisId: Value(axisId),
             type: Value(type),
             frequency: Value(frequency),
             difficulty: Value(difficulty),
+            reminderMinutes: Value(reminderMinutes),
           ),
         );
+    if (reminderMinutes != null) {
+      await notifications.scheduleDailyHabitReminder(
+        entityId: id,
+        title: title,
+        minuteOfDay: reminderMinutes,
+      );
+    }
   }
 
-  Future<void> softDelete(String id) {
-    return (db.update(db.habits)..where((h) => h.id.equals(id))).write(
+  Future<void> softDelete(String id) async {
+    await (db.update(db.habits)..where((h) => h.id.equals(id))).write(
       HabitsCompanion(
         isDeleted: const Value(true),
         dirty: const Value(true),
         updatedAt: Value(DateTime.now()),
       ),
     );
+    await notifications.cancel(id);
   }
 }
 
 final habitRepositoryProvider = Provider<HabitRepository>((ref) {
-  return HabitRepository(ref.watch(databaseProvider));
+  return HabitRepository(
+    ref.watch(databaseProvider),
+    ref.watch(notificationServiceProvider),
+  );
 });
 
 final habitsStreamProvider = StreamProvider<List<Habit>>((ref) {

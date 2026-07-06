@@ -1,17 +1,107 @@
 import 'package:flutter/material.dart';
-import '../../../shared/widgets/feature_placeholder.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Экран настроек (тема, звуки, уведомления, аккаунт — по мере реализации фаз).
-class SettingsScreen extends StatelessWidget {
+import '../../../core/notifications/notification_service.dart';
+
+/// Экран настроек. Раздел «Уведомления» — Фаза 3.
+/// (Тема, звуки, аккаунт/синхронизация — по мере реализации остальных фаз.)
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool? _granted;
+  bool _busy = false;
+
+  Future<void> _requestPermissions() async {
+    setState(() => _busy = true);
+    final granted =
+        await ref.read(notificationServiceProvider).requestPermissions();
+    if (mounted) {
+      setState(() {
+        _granted = granted;
+        _busy = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const FeaturePlaceholder(
-      title: 'Настройки',
-      icon: Icons.settings_outlined,
-      description:
-          'Тема оформления, звуки, расписание напоминаний, аккаунт и синхронизация.',
+    final theme = Theme.of(context);
+    final supported = ref.read(notificationServiceProvider).isSupported;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Настройки')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text('Уведомления', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!supported) ...[
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline,
+                            color: theme.colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Уведомления доступны на мобильном устройстве '
+                            '(Android/iOS). В веб-версии они отключены.',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    const Text(
+                      'Разрешите уведомления, чтобы получать напоминания '
+                      'о задачах и привычках в назначенное время.',
+                    ),
+                    const SizedBox(height: 12),
+                    if (_granted != null)
+                      Row(
+                        children: [
+                          Icon(
+                            _granted!
+                                ? Icons.check_circle
+                                : Icons.cancel_outlined,
+                            color: _granted!
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.error,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(_granted!
+                              ? 'Разрешение выдано'
+                              : 'Разрешение не выдано'),
+                        ],
+                      ),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: _busy ? null : _requestPermissions,
+                      icon: _busy
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.notifications_active_outlined),
+                      label: const Text('Запросить разрешение'),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -20,11 +20,20 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
   Frequency _frequency = Frequency.daily;
   Difficulty _difficulty = Difficulty.auto;
   String? _axisId;
+  TimeOfDay? _reminderTime;
 
   @override
   void dispose() {
     _titleController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickReminder() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime ?? const TimeOfDay(hour: 9, minute: 0),
+    );
+    if (time != null) setState(() => _reminderTime = time);
   }
 
   Future<void> _save() async {
@@ -35,6 +44,9 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
           axisId: _axisId,
           frequency: _frequency,
           difficulty: _difficulty,
+          reminderMinutes: _reminderTime == null
+              ? null
+              : _reminderTime!.hour * 60 + _reminderTime!.minute,
         );
     if (mounted) Navigator.of(context).pop();
   }
@@ -106,6 +118,22 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
                 onChanged: (v) => setState(() => _axisId = v),
               ),
               orElse: () => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.notifications_outlined),
+              title: const Text('Ежедневное напоминание'),
+              subtitle: Text(_reminderTime == null
+                  ? 'Не задано'
+                  : _reminderTime!.format(context)),
+              trailing: _reminderTime == null
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(() => _reminderTime = null),
+                    ),
+              onTap: _pickReminder,
             ),
           ],
         ),

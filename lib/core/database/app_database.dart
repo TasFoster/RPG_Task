@@ -26,12 +26,19 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          // v1 → v2 (Фаза 3): поля напоминаний.
+          if (from < 2) {
+            await m.addColumn(tasks, tasks.reminderAt);
+            await m.addColumn(habits, habits.reminderMinutes);
+          }
         },
         beforeOpen: (details) async {
           // Включаем внешние ключи (SQLite по умолчанию их не проверяет).

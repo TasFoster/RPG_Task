@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/balance.dart';
@@ -20,11 +21,36 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   Difficulty _difficulty = Difficulty.auto;
   String? _axisId;
   int _minutes = 25;
+  DateTime? _reminderAt;
 
   @override
   void dispose() {
     _titleController.dispose();
     super.dispose();
+  }
+
+  String _formatReminder(DateTime dt) =>
+      DateFormat('d MMM, HH:mm', 'ru').format(dt);
+
+  Future<void> _pickReminder() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _reminderAt ?? now.add(const Duration(hours: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+          _reminderAt ?? now.add(const Duration(hours: 1))),
+    );
+    if (time == null) return;
+    setState(() {
+      _reminderAt =
+          DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    });
   }
 
   Future<void> _save() async {
@@ -35,6 +61,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           axisId: _axisId,
           difficulty: _difficulty,
           estimatedMinutes: _minutes,
+          reminderAt: _reminderAt,
         );
     if (mounted) Navigator.of(context).pop();
   }
@@ -109,6 +136,22 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                 ),
                 Text('$_minutes'),
               ],
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.notifications_outlined),
+              title: const Text('Напоминание'),
+              subtitle: Text(_reminderAt == null
+                  ? 'Не задано'
+                  : _formatReminder(_reminderAt!)),
+              trailing: _reminderAt == null
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(() => _reminderAt = null),
+                    ),
+              onTap: _pickReminder,
             ),
           ],
         ),

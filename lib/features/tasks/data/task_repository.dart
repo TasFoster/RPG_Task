@@ -5,13 +5,15 @@ import 'package:uuid/uuid.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/gamification/balance.dart';
+import '../../../core/notifications/notification_service.dart';
 
 const _uuid = Uuid();
 
 /// Доступ к задачам в локальной БД.
 class TaskRepository {
   final AppDatabase db;
-  TaskRepository(this.db);
+  final NotificationService notifications;
+  TaskRepository(this.db, this.notifications);
 
   /// Активные (не удалённые) задачи: невыполненные сверху, внутри — новые сверху.
   Stream<List<Task>> watchTasks() {
@@ -32,34 +34,51 @@ class TaskRepository {
     Difficulty difficulty = Difficulty.auto,
     int estimatedMinutes = 25,
     DateTime? dueAt,
-  }) {
-    return db.into(db.tasks).insert(
+    DateTime? reminderAt,
+  }) async {
+    final id = _uuid.v4();
+    await db.into(db.tasks).insert(
           TasksCompanion.insert(
-            id: _uuid.v4(),
+            id: id,
             title: title,
             notes: Value(notes),
             axisId: Value(axisId),
             difficulty: Value(difficulty),
             estimatedMinutes: Value(estimatedMinutes),
             dueAt: Value(dueAt),
+            reminderAt: Value(reminderAt),
           ),
         );
+    if (reminderAt != null) {
+      await notifications.scheduleTaskReminder(
+        entityId: id,
+        title: title,
+        when: reminderAt,
+      );
+    }
   }
 
+  /// Отмена напоминания (при выполнении задачи оно больше не нужно).
+  Future<void> cancelReminder(String id) => notifications.cancel(id);
+
   /// Мягкое удаление (тумбстоун для будущей синхронизации).
-  Future<void> softDelete(String id) {
-    return (db.update(db.tasks)..where((t) => t.id.equals(id))).write(
+  Future<void> softDelete(String id) async {
+    await (db.update(db.tasks)..where((t) => t.id.equals(id))).write(
       TasksCompanion(
         isDeleted: const Value(true),
         dirty: const Value(true),
         updatedAt: Value(DateTime.now()),
       ),
     );
+    await notifications.cancel(id);
   }
 }
 
 final taskRepositoryProvider = Provider<TaskRepository>((ref) {
-  return TaskRepository(ref.watch(databaseProvider));
+  return TaskRepository(
+    ref.watch(databaseProvider),
+    ref.watch(notificationServiceProvider),
+  );
 });
 
 final tasksStreamProvider = StreamProvider<List<Task>>((ref) {

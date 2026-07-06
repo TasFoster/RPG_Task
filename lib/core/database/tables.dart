@@ -37,6 +37,8 @@ class Tasks extends Table with _SyncColumns {
   IntColumn get estimatedMinutes =>
       integer().withDefault(const Constant(25))();
   DateTimeColumn get dueAt => dateTime().nullable()();
+  // Фаза 3: разовое напоминание (точное время). null — без напоминания.
+  DateTimeColumn get reminderAt => dateTime().nullable()();
   IntColumn get status =>
       intEnum<TaskStatus>().withDefault(Constant(TaskStatus.pending.index))();
   DateTimeColumn get completedAt => dateTime().nullable()();
@@ -62,6 +64,8 @@ class Habits extends Table with _SyncColumns {
       .withDefault(Constant(Difficulty.auto.index))();
   IntColumn get streakCurrent => integer().withDefault(const Constant(0))();
   IntColumn get streakBest => integer().withDefault(const Constant(0))();
+  // Фаза 3: ежедневное напоминание — минута суток [0..1439]. null — без напоминания.
+  IntColumn get reminderMinutes => integer().nullable()();
   DateTimeColumn get lastCompletedAt => dateTime().nullable()();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
