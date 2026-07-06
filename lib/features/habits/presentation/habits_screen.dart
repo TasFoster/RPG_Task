@@ -1,17 +1,176 @@
 import 'package:flutter/material.dart';
-import '../../../shared/widgets/feature_placeholder.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Экран привычек (реализация — Фаза 1).
-class HabitsScreen extends StatelessWidget {
+import '../../../core/database/app_database.dart';
+import '../../../core/gamification/reward_service.dart';
+import '../../../shared/utils/icons.dart';
+import '../../../shared/utils/labels.dart';
+import '../../../shared/widgets/reward_snackbar.dart';
+import '../../skills/data/skill_repository.dart';
+import '../data/habit_repository.dart';
+import 'add_habit_dialog.dart';
+
+/// Экран привычек: список со стриками и отметкой выполнения.
+class HabitsScreen extends ConsumerWidget {
   const HabitsScreen({super.key});
 
   @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final habitsAsync = ref.watch(habitsStreamProvider);
+    final axesById = {
+      for (final a in ref.watch(axesStreamProvider).value ?? const <SkillAxe>[])
+        a.id: a,
+    };
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Привычки')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showDialog(
+          context: context,
+          builder: (_) => const AddHabitDialog(),
+        ),
+        icon: const Icon(Icons.add),
+        label: const Text('Привычка'),
+      ),
+      body: habitsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Ошибка: $e')),
+        data: (habits) {
+          if (habits.isEmpty) {
+            return const _EmptyState();
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
+            itemCount: habits.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 4),
+            itemBuilder: (context, i) {
+              final habit = habits[i];
+              return _HabitTile(habit: habit, axis: axesById[habit.axisId]);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HabitTile extends ConsumerWidget {
+  final Habit habit;
+  final SkillAxe? axis;
+  const _HabitTile({required this.habit, this.axis});
+
+  bool get _doneToday {
+    final last = habit.lastCompletedAt;
+    if (last == null) return false;
+    final now = DateTime.now();
+    return last.year == now.year &&
+        last.month == now.month &&
+        last.day == now.day;
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final doneToday = _doneToday;
+
+    Future<void> complete() async {
+      final reward = await ref.read(rewardServiceProvider).completeHabit(habit);
+      if (context.mounted && reward != null) {
+        showRewardSnackBar(context, reward);
+      }
+    }
+
+    return Dismissible(
+      key: ValueKey(habit.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        color: theme.colorScheme.errorContainer,
+        child: Icon(Icons.delete, color: theme.colorScheme.onErrorContainer),
+      ),
+      onDismissed: (_) => ref.read(habitRepositoryProvider).softDelete(habit.id),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: ListTile(
+          leading: IconButton(
+            icon: Icon(doneToday
+                ? Icons.check_circle
+                : Icons.radio_button_unchecked),
+            color: doneToday ? theme.colorScheme.primary : null,
+            onPressed: doneToday ? null : complete,
+          ),
+          title: Text(habit.title),
+          subtitle: Row(
+            children: [
+              if (axis != null) ...[
+                Icon(materialIcon(axis!.iconCodePoint),
+                    size: 14, color: Color(axis!.colorValue)),
+                const SizedBox(width: 4),
+                Text(axis!.name, style: theme.textTheme.bodySmall),
+                const SizedBox(width: 10),
+              ],
+              Icon(Icons.calendar_today,
+                  size: 12, color: theme.colorScheme.onSurfaceVariant),
+              const SizedBox(width: 4),
+              Text(frequencyLabel(habit.frequency),
+                  style: theme.textTheme.bodySmall),
+            ],
+          ),
+          trailing: _StreakBadge(streak: habit.streakCurrent),
+        ),
+      ),
+    );
+  }
+}
+
+class _StreakBadge extends StatelessWidget {
+  final int streak;
+  const _StreakBadge({required this.streak});
+
+  @override
   Widget build(BuildContext context) {
-    return const FeaturePlaceholder(
-      title: 'Привычки',
-      icon: Icons.local_fire_department_outlined,
-      description:
-          'Ежедневные и еженедельные привычки со стриками и бонусами за регулярность.',
+    final theme = Theme.of(context);
+    final active = streak > 0;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.local_fire_department,
+          color: active
+              ? const Color(0xFFEA580C)
+              : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        ),
+        Text('$streak',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: active ? const Color(0xFFEA580C) : null,
+            )),
+      ],
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.local_fire_department,
+              size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+          const SizedBox(height: 16),
+          Text('Пока нет привычек', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text('Добавьте привычку и стройте серии выполнения',
+              style: theme.textTheme.bodySmall),
+        ],
+      ),
     );
   }
 }

@@ -1,87 +1,122 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Демонстрационная ось навыка (в Фазе 1 данные придут из БД).
-class _SkillAxis {
-  final String name;
-  final double value; // 0..100 — условный прогресс
-  const _SkillAxis(this.name, this.value);
-}
+import '../../../core/database/app_database.dart';
+import '../../../core/gamification/gamification_engine.dart';
+import '../../../shared/utils/icons.dart';
+import '../data/skill_repository.dart';
 
-/// Экран «Роза навыков» — радарная диаграмма прокачки по осям жизни.
-/// Пока показывает демо-данные; в Фазе 1 будет считать из локальной БД.
-class SkillsScreen extends StatelessWidget {
+/// Экран «Роза навыков»: радарная диаграмма прокачки по осям жизни.
+/// Данные — реальные (уровень оси считается из накопленного XP).
+class SkillsScreen extends ConsumerWidget {
   const SkillsScreen({super.key});
 
-  static const List<_SkillAxis> _demoAxes = [
-    _SkillAxis('Здоровье', 70),
-    _SkillAxis('Спорт', 45),
-    _SkillAxis('Учёба', 80),
-    _SkillAxis('Работа', 60),
-    _SkillAxis('Творчество', 35),
-    _SkillAxis('Отношения', 55),
-  ];
+  static const _engine = GamificationEngine();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final axesAsync = ref.watch(axesStreamProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Роза навыков')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(
-              'Прокачивайте оси жизни выполнением задач и привычек',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: RadarChart(
-                RadarChartData(
-                  radarShape: RadarShape.polygon,
-                  tickCount: 4,
-                  ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
-                  radarBackgroundColor: Colors.transparent,
-                  borderData: FlBorderData(show: false),
-                  radarBorderData: BorderSide(color: theme.dividerColor, width: 1),
-                  gridBorderData: BorderSide(color: theme.dividerColor, width: 1),
-                  tickBorderData: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
-                  getTitle: (index, angle) =>
-                      RadarChartTitle(text: _demoAxes[index].name),
-                  titleTextStyle: theme.textTheme.labelMedium,
-                  dataSets: [
-                    RadarDataSet(
-                      fillColor: primary.withValues(alpha: 0.25),
-                      borderColor: primary,
-                      borderWidth: 2,
-                      entryRadius: 3,
-                      dataEntries: [
-                        for (final axis in _demoAxes)
-                          RadarEntry(value: axis.value),
-                      ],
-                    ),
-                  ],
+      body: axesAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Ошибка: $e')),
+        data: (axes) {
+          if (axes.length < 3) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Text(
+                  'Нужно минимум 3 оси навыков для диаграммы.',
+                  textAlign: TextAlign.center,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
+            );
+          }
+          final levels = [for (final a in axes) _engine.levelForXp(a.xp)];
+          final maxLevel = levels.reduce((a, b) => a > b ? a : b);
+          final primary = theme.colorScheme.primary;
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                for (final axis in _demoAxes)
-                  Chip(label: Text('${axis.name}: ${axis.value.toInt()}')),
+                Text(
+                  'Прокачивайте оси жизни выполнением задач и привычек',
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: RadarChart(
+                    RadarChartData(
+                      radarShape: RadarShape.polygon,
+                      tickCount: maxLevel < 4 ? 4 : maxLevel,
+                      ticksTextStyle: const TextStyle(
+                          color: Colors.transparent, fontSize: 10),
+                      radarBackgroundColor: Colors.transparent,
+                      borderData: FlBorderData(show: false),
+                      radarBorderData:
+                          BorderSide(color: theme.dividerColor, width: 1),
+                      gridBorderData:
+                          BorderSide(color: theme.dividerColor, width: 1),
+                      tickBorderData: BorderSide(
+                          color: theme.dividerColor.withValues(alpha: 0.5)),
+                      getTitle: (index, angle) =>
+                          RadarChartTitle(text: axes[index].name),
+                      titleTextStyle: theme.textTheme.labelMedium,
+                      dataSets: [
+                        RadarDataSet(
+                          fillColor: primary.withValues(alpha: 0.25),
+                          borderColor: primary,
+                          borderWidth: 2,
+                          entryRadius: 3,
+                          dataEntries: [
+                            for (final level in levels)
+                              RadarEntry(value: level.toDouble()),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (var i = 0; i < axes.length; i++)
+                      _AxisChip(axis: axes[i], level: levels[i]),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          );
+        },
       ),
+    );
+  }
+}
+
+class _AxisChip extends StatelessWidget {
+  final SkillAxe axis;
+  final int level;
+  const _AxisChip({required this.axis, required this.level});
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      avatar: Icon(
+        materialIcon(axis.iconCodePoint),
+        size: 18,
+        color: Color(axis.colorValue),
+      ),
+      label: Text('${axis.name}: ур. $level'),
     );
   }
 }

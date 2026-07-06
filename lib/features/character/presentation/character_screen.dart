@@ -1,102 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../core/gamification/gamification_engine.dart';
+import '../../profile/data/profile_repository.dart';
 
-/// Экран персонажа: аватар героя, уровень, опыт, валюты.
-/// Пока демо-данные; в Фазе 1 значения придут из локального профиля.
-class CharacterScreen extends StatelessWidget {
+/// Экран персонажа: аватар героя, уровень, опыт, валюты (реальные данные).
+class CharacterScreen extends ConsumerWidget {
   const CharacterScreen({super.key});
 
-  // Демо-состояние героя.
-  static const int _totalXp = 640;
-  static const int _gold = 1250;
-  static const int _gems = 12;
+  static const _engine = GamificationEngine();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    const engine = GamificationEngine();
-
-    final level = engine.levelForXp(_totalXp);
-    final xpAtLevelStart = engine.totalXpForLevel(level);
-    final xpForThisLevel = engine.xpToNext(level);
-    final xpInLevel = _totalXp - xpAtLevelStart;
-    final progress = (xpInLevel / xpForThisLevel).clamp(0.0, 1.0);
+    final profileAsync = ref.watch(profileStreamProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Герой')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 44,
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      child: Icon(Icons.shield_moon,
-                          size: 48, color: theme.colorScheme.primary),
-                    ),
-                    const SizedBox(height: 12),
-                    Text('Искатель приключений',
-                        style: theme.textTheme.titleLarge),
-                    const SizedBox(height: 4),
-                    Text('Уровень $level',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary)),
-                    const SizedBox(height: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 12,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text('$xpInLevel / $xpForThisLevel XP до уровня ${level + 1}',
-                        style: theme.textTheme.bodySmall),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
+      body: profileAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Ошибка: $e')),
+        data: (profile) {
+          final totalXp = profile?.totalXp ?? 0;
+          final gold = profile?.gold ?? 0;
+          final gems = profile?.gems ?? 0;
+          final name = profile?.displayName ?? 'Искатель приключений';
+
+          final level = _engine.levelForXp(totalXp);
+          final xpAtStart = _engine.totalXpForLevel(level);
+          final xpForLevel = _engine.xpToNext(level);
+          final xpInLevel = totalXp - xpAtStart;
+          final progress = (xpInLevel / xpForLevel).clamp(0.0, 1.0);
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: _CurrencyCard(
-                    icon: Icons.monetization_on,
-                    color: AppTheme.guildGold,
-                    label: 'Золото',
-                    value: _gold,
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 44,
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          child: Icon(Icons.shield_moon,
+                              size: 48, color: theme.colorScheme.primary),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(name, style: theme.textTheme.titleLarge),
+                        const SizedBox(height: 4),
+                        Text('Уровень $level',
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(color: theme.colorScheme.primary)),
+                        const SizedBox(height: 16),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                              value: progress, minHeight: 12),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                            '$xpInLevel / $xpForLevel XP до уровня ${level + 1}',
+                            style: theme.textTheme.bodySmall),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _CurrencyCard(
-                    icon: Icons.diamond,
-                    color: AppTheme.crystalBlue,
-                    label: 'Кристаллы',
-                    value: _gems,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _CurrencyCard(
+                        icon: Icons.monetization_on,
+                        color: AppTheme.guildGold,
+                        label: 'Золото',
+                        value: gold,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _CurrencyCard(
+                        icon: Icons.diamond,
+                        color: AppTheme.crystalBlue,
+                        label: 'Кристаллы',
+                        value: gems,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Card(
+                  child: ListTile(
+                    leading: Icon(Icons.pets),
+                    title: Text('Питомец'),
+                    subtitle: Text('Появится в Фазе 6'),
+                    trailing: Icon(Icons.lock_outline),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.pets),
-                title: const Text('Питомец'),
-                subtitle: const Text('Появится в Фазе 6'),
-                trailing: const Icon(Icons.lock_outline),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
