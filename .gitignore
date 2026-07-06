@@ -1,0 +1,53 @@
+# ============ Flutter / Dart ============
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+.pub-cache/
+.pub/
+*.lock.bak
+doctor.log
+
+# Сгенерированный код (freezed / json / drift / riverpod) — по желанию можно коммитить,
+# но по умолчанию генерируем локально:
+# *.g.dart
+# *.freezed.dart
+
+# ============ IDE ============
+.idea/
+.vscode/*
+!.vscode/launch.json.example
+*.iml
+*.ipr
+*.iws
+
+# ============ Android ============
+android/.gradle/
+android/local.properties
+android/key.properties
+android/app/upload-keystore.jks
+android/app/*.jks
+android/app/*.keystore
+**/*.keystore
+
+# ============ Секреты / окружение (НЕ КОММИТИТЬ) ============
+.env
+.env.*
+*.env
+secrets.dart
+lib/core/config/secrets.dart
+.vscode/launch.json
+supabase/.env
+supabase/.branches/
+supabase/.temp/
+
+# ============ ОС ============
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============ Прочее ============
+*.log
+coverage/
+.fvm/

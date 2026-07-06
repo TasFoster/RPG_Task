@@ -1,0 +1,27 @@
+{
+  "// ПОДСКАЗКА": "Скопируйте этот файл в .vscode/launch.json и подставьте свои ключи Supabase. launch.json в .gitignore и НЕ коммитится.",
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "RPG_Task (dev)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=ВАШ_SUPABASE_URL",
+        "--dart-define=SUPABASE_ANON_KEY=ВАШ_ANON_KEY"
+      ]
+    },
+    {
+      "name": "RPG_Task (release)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=ВАШ_SUPABASE_URL",
+        "--dart-define=SUPABASE_ANON_KEY=ВАШ_ANON_KEY"
+      ]
+    }
+  ]
+}
