@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../../../core/gamification/gamification_engine.dart';
@@ -92,12 +93,19 @@ class CharacterScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Card(
-                  child: ListTile(
-                    leading: Icon(Icons.pets),
-                    title: Text('Питомец'),
-                    subtitle: Text('Появится в Фазе 6'),
-                    trailing: Icon(Icons.lock_outline),
+                Text('Приключения', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: Icon(Icons.whatshot,
+                            color: theme.colorScheme.error),
+                        title: const Text('Цели и боссы'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/goals'),
+                      ),
+                    ],
                   ),
                 ),
               ],

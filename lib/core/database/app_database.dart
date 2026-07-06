@@ -17,6 +17,11 @@ part 'app_database.g.dart';
     HabitLogs,
     Profiles,
     CurrencyTransactions,
+    Goals,
+    GoalSteps,
+    DailyQuests,
+    UserAchievements,
+    InventoryItems,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -26,7 +31,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -38,6 +43,14 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             await m.addColumn(tasks, tasks.reminderAt);
             await m.addColumn(habits, habits.reminderMinutes);
+          }
+          // v2 → v3 (Фаза 6): цели/боссы, квесты, достижения, инвентарь.
+          if (from < 3) {
+            await m.createTable(goals);
+            await m.createTable(goalSteps);
+            await m.createTable(dailyQuests);
+            await m.createTable(userAchievements);
+            await m.createTable(inventoryItems);
           }
         },
         beforeOpen: (details) async {

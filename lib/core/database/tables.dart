@@ -99,6 +99,72 @@ class Profiles extends Table with _SyncColumns {
   Set<Column> get primaryKey => {id};
 }
 
+/// Цели и боссы. Босс — цель с полосой HP; урон наносят выполненные шаги.
+class Goals extends Table with _SyncColumns {
+  TextColumn get title => text()();
+  TextColumn get notes => text().nullable()();
+  TextColumn get axisId => text().nullable().references(SkillAxes, #id)();
+  BoolColumn get isBoss => boolean().withDefault(const Constant(false))();
+  IntColumn get hpTotal => integer().withDefault(const Constant(0))();
+  IntColumn get hpRemaining => integer().withDefault(const Constant(0))();
+  IntColumn get status =>
+      intEnum<GoalStatus>().withDefault(Constant(GoalStatus.active.index))();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Подзадачи (шаги) цели. Выполнение шага наносит урон боссу и даёт XP.
+class GoalSteps extends Table with _SyncColumns {
+  TextColumn get goalId => text().references(Goals, #id)();
+  TextColumn get title => text()();
+  IntColumn get difficulty => intEnum<Difficulty>()
+      .withDefault(Constant(Difficulty.auto.index))();
+  IntColumn get estimatedMinutes => integer().withDefault(const Constant(25))();
+  IntColumn get expectedXp => integer().withDefault(const Constant(0))();
+  IntColumn get status =>
+      intEnum<TaskStatus>().withDefault(Constant(TaskStatus.pending.index))();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Ежедневные квесты. Прогресс считается динамически из данных за день;
+/// в строке хранится только цель, награда и факт получения награды.
+class DailyQuests extends Table with _SyncColumns {
+  TextColumn get dateKey => text()(); // 'YYYY-MM-DD' (локальная дата)
+  IntColumn get type => intEnum<QuestType>()();
+  IntColumn get target => integer()();
+  IntColumn get rewardXp => integer()();
+  IntColumn get rewardGold => integer()();
+  BoolColumn get claimed => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Разблокированные достижения (определения — в коде; id = ключ достижения).
+class UserAchievements extends Table with _SyncColumns {
+  DateTimeColumn get unlockedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Инвентарь купленной кастомизации (каталог — в коде; id = ключ предмета).
+class InventoryItems extends Table with _SyncColumns {
+  DateTimeColumn get acquiredAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get equipped => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Журнал транзакций валют/опыта (append-only событийный лог).
 class CurrencyTransactions extends Table with _SyncColumns {
   IntColumn get kind => intEnum<CurrencyKind>()();
