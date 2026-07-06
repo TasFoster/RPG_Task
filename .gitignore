@@ -51,3 +51,9 @@ desktop.ini
 *.log
 coverage/
 .fvm/
+
+# ============ Служебные файлы Claude Code (сессия/локальные) ============
+.claude/*.lock
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
+.claude/.session*
