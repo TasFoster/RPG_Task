@@ -10,6 +10,7 @@ import '../../features/goals/presentation/goals_screen.dart';
 import '../../features/goals/presentation/goal_detail_screen.dart';
 import '../../features/quests/presentation/quests_screen.dart';
 import '../../features/achievements/presentation/achievements_screen.dart';
+import '../../features/shop/presentation/shop_screen.dart';
 import '../widgets/home_shell.dart';
 
 /// Конфигурация навигации приложения.
@@ -37,6 +38,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/achievements',
       builder: (context, state) => const AchievementsScreen(),
+    ),
+    GoRoute(
+      path: '/shop',
+      builder: (context, state) => const ShopScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>

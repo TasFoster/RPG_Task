@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/gamification/gamification_engine.dart';
 import '../../profile/data/profile_repository.dart';
+import '../../shop/data/shop_catalog.dart';
+import '../../shop/data/shop_service.dart';
 
 /// Экран персонажа: аватар героя, уровень, опыт, валюты (реальные данные).
 class CharacterScreen extends ConsumerWidget {
@@ -16,6 +18,9 @@ class CharacterScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final profileAsync = ref.watch(profileStreamProvider);
+    final avatar = ref.watch(equippedItemProvider(ShopCategory.avatar));
+    final pet = ref.watch(equippedItemProvider(ShopCategory.pet));
+    final frame = ref.watch(equippedItemProvider(ShopCategory.frame));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Герой')),
@@ -44,11 +49,25 @@ class CharacterScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 44,
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                          child: Icon(Icons.shield_moon,
-                              size: 48, color: theme.colorScheme.primary),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: frame == null
+                              ? null
+                              : BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: frame.key == 'frame_crystal'
+                                        ? AppTheme.crystalBlue
+                                        : AppTheme.guildGold,
+                                    width: 3,
+                                  ),
+                                ),
+                          child: CircleAvatar(
+                            radius: 44,
+                            backgroundColor: theme.colorScheme.primaryContainer,
+                            child: Icon(avatar?.icon ?? Icons.shield_moon,
+                                size: 48, color: theme.colorScheme.primary),
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(name, style: theme.textTheme.titleLarge),
@@ -93,6 +112,18 @@ class CharacterScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: theme.colorScheme.secondaryContainer,
+                      child: Icon(pet?.icon ?? Icons.pets,
+                          color: theme.colorScheme.onSecondaryContainer),
+                    ),
+                    title: const Text('Питомец'),
+                    subtitle: Text(pet?.name ?? 'Нет питомца — загляните в магазин'),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text('Приключения', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Card(
@@ -120,6 +151,14 @@ class CharacterScreen extends ConsumerWidget {
                         title: const Text('Достижения'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/achievements'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: Icon(Icons.storefront,
+                            color: AppTheme.guildGold),
+                        title: const Text('Магазин'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/shop'),
                       ),
                     ],
                   ),
