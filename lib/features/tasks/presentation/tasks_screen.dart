@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/reward_service.dart';
@@ -24,7 +25,16 @@ class TasksScreen extends ConsumerWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Задачи')),
+      appBar: AppBar(
+        title: const Text('Задачи'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.timer_outlined),
+            tooltip: 'Помодоро',
+            onPressed: () => context.push('/pomodoro'),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showDialog(
           context: context,

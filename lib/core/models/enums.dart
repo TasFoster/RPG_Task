@@ -12,9 +12,12 @@ enum RewardReason {
   taskCompleted,
   habitCompleted,
   habitFailed,
+  goalStep,
   bossKilled,
   streakBonus,
   achievement,
+  dailyQuest,
+  focusSession,
   purchase,
   manual,
 }

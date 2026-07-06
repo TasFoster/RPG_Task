@@ -105,6 +105,37 @@ class RewardService {
     });
   }
 
+  /// Начисление за завершённый фокус-сеанс (помодоро) на [minutes] минут.
+  /// Опционально относится к оси навыка [axisId].
+  Future<RewardResult> awardFocusSession({
+    required int minutes,
+    String? axisId,
+  }) {
+    return db.transaction(() async {
+      final reward = engine.reward(RewardInput(
+        type: ActivityType.task,
+        difficulty: Difficulty.auto,
+        frequency: Frequency.rare,
+        estimatedMinutes: minutes,
+      ));
+      await _applyRewards(reward,
+          reason: RewardReason.focusSession, axisId: axisId);
+      return reward;
+    });
+  }
+
+  /// Публичное начисление произвольной награды в одной транзакции
+  /// (для квестов, достижений, шагов целей и т.п.).
+  Future<void> applyReward(
+    RewardResult reward, {
+    required RewardReason reason,
+    String? refId,
+    String? axisId,
+  }) {
+    return db.transaction(
+        () => _applyRewards(reward, reason: reason, refId: refId, axisId: axisId));
+  }
+
   Future<void> _applyRewards(
     RewardResult reward, {
     required RewardReason reason,

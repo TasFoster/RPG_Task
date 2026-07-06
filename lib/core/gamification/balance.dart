@@ -49,4 +49,10 @@ class GamificationBalance {
   // Боссы.
   double get bossHpFactor => 1.2; // hp = sum(ожидаемый XP подзадач) * 1.2
   double get bossKillXpBonus => 0.2; // бонус = hp_total * 0.2
+
+  // Помодоро / фокус.
+  int get pomodoroWorkMinutes => 25;
+  int get pomodoroShortBreakMinutes => 5;
+  int get pomodoroLongBreakMinutes => 15;
+  int get pomodoroCyclesBeforeLongBreak => 4;
 }

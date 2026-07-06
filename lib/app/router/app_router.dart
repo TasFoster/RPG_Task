@@ -5,12 +5,18 @@ import '../../features/habits/presentation/habits_screen.dart';
 import '../../features/skills/presentation/skills_screen.dart';
 import '../../features/character/presentation/character_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/pomodoro/presentation/pomodoro_screen.dart';
 import '../widgets/home_shell.dart';
 
 /// Конфигурация навигации приложения.
 final GoRouter appRouter = GoRouter(
   initialLocation: '/tasks',
   routes: [
+    // Полноэкранные push-роуты (поверх нижней навигации).
+    GoRoute(
+      path: '/pomodoro',
+      builder: (context, state) => const PomodoroScreen(),
+    ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
           HomeShell(navigationShell: navigationShell),
