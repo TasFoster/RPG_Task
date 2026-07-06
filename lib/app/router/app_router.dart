@@ -9,6 +9,7 @@ import '../../features/pomodoro/presentation/pomodoro_screen.dart';
 import '../../features/goals/presentation/goals_screen.dart';
 import '../../features/goals/presentation/goal_detail_screen.dart';
 import '../../features/quests/presentation/quests_screen.dart';
+import '../../features/achievements/presentation/achievements_screen.dart';
 import '../widgets/home_shell.dart';
 
 /// Конфигурация навигации приложения.
@@ -32,6 +33,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/quests',
       builder: (context, state) => const QuestsScreen(),
+    ),
+    GoRoute(
+      path: '/achievements',
+      builder: (context, state) => const AchievementsScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
