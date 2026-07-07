@@ -1,18 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/seasons/data/season_service.dart';
+import '../../features/seasons/presentation/season_summary_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Каркас главного экрана с нижней навигацией между вкладками.
-class HomeShell extends StatelessWidget {
+class HomeShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
   const HomeShell({super.key, required this.navigationShell});
 
+  @override
+  ConsumerState<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends ConsumerState<HomeShell> {
+  @override
+  void initState() {
+    super.initState();
+    // Если при запуске случился месячный пересчёт — показываем свиток итогов.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final summary = ref.read(pendingSeasonSummaryProvider);
+      if (summary != null && mounted) {
+        SeasonSummaryDialog.show(context, summary);
+      }
+    });
+  }
+
   void _goBranch(int index) {
-    navigationShell.goBranch(
+    widget.navigationShell.goBranch(
       index,
       // Повторный тап по активной вкладке возвращает к её корню.
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 
@@ -20,9 +40,9 @@ class HomeShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      body: navigationShell,
+      body: widget.navigationShell,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
+        selectedIndex: widget.navigationShell.currentIndex,
         onDestinationSelected: _goBranch,
         destinations: [
           NavigationDestination(

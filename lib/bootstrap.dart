@@ -12,6 +12,7 @@ import 'features/onboarding/data/onboarding_service.dart';
 import 'features/tips/data/tips_push.dart';
 import 'features/tips/data/tips_service.dart';
 import 'features/tips/data/tips_settings.dart';
+import 'features/seasons/data/season_service.dart';
 import 'features/stats/data/stats_repository.dart';
 import 'features/widgets/home_widgets_service.dart';
 
@@ -35,7 +36,11 @@ Future<void> bootstrap() async {
     final tipsSettings = await TipsSettings.load();
     await applyTipPushSchedule(notifications, const TipsService(), tipsSettings);
 
-    // Ежедневный снимок показателей для графиков динамики.
+    // Сезонная система: если начался новый месяц — закрыть предыдущий сезон
+    // (сброс уровня, фиксация итогов). Итоги покажем «свитком» после запуска.
+    final seasonSummary = await SeasonService(db).checkRollover();
+
+    // Ежедневный снимок показателей для графиков динамики (после сброса сезона).
     await StatsRepository(db).recordDailySnapshot();
 
     // Обновить виджеты главного экрана (Android; на web — no-op).
@@ -54,6 +59,7 @@ Future<void> bootstrap() async {
         overrides: [
           databaseProvider.overrideWithValue(db),
           notificationServiceProvider.overrideWithValue(notifications),
+          pendingSeasonSummaryProvider.overrideWithValue(seasonSummary),
         ],
         child: RpgTaskApp(router: router),
       ),

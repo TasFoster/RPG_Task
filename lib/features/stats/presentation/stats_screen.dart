@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/gamification/ranks.dart';
@@ -23,7 +24,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final statsAsync = ref.watch(statsProvider(_range));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Летопись героя')),
+      appBar: AppBar(
+        title: const Text('Летопись героя'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.workspace_premium_outlined),
+            tooltip: 'Зал славы',
+            onPressed: () => context.push('/seasons'),
+          ),
+        ],
+      ),
       body: statsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Ошибка: $e')),

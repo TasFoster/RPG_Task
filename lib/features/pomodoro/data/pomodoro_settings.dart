@@ -79,8 +79,13 @@ class PomodoroSettingsNotifier extends Notifier<PomodoroSettings> {
   }
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    state = PomodoroSettings._read(prefs);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      state = PomodoroSettings._read(prefs);
+    } catch (_) {
+      // Настройки недоступны (напр. в юнит-тестах) — остаёмся на значениях
+      // по умолчанию.
+    }
   }
 
   Future<void> save(PomodoroSettings next) async {
