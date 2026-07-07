@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/gamification_engine.dart';
@@ -20,7 +21,16 @@ class SkillsScreen extends ConsumerWidget {
     final axesAsync = ref.watch(axesStreamProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Роза навыков')),
+      appBar: AppBar(
+        title: const Text('Роза навыков'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: 'Управление осями',
+            onPressed: () => context.push('/skills/manage'),
+          ),
+        ],
+      ),
       body: axesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Ошибка: $e')),
