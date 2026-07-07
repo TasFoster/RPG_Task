@@ -26,6 +26,7 @@ part 'app_database.g.dart';
     CodexEntries,
     StatSnapshots,
     Seasons,
+    Notes,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -35,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -74,6 +75,10 @@ class AppDatabase extends _$AppDatabase {
             // чтобы достижения и статистика «всё время» не обнулились.
             await customStatement(
                 'UPDATE profiles SET lifetime_xp = total_xp');
+          }
+          // v5 → v6: заметки «Дневника».
+          if (from < 6) {
+            await m.createTable(notes);
           }
         },
         beforeOpen: (details) async {

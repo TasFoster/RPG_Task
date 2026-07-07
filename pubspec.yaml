@@ -59,6 +59,8 @@ dependencies:
   home_widget: ^0.9.3
   # Фаза 2 — облачная синхронизация между web и мобильной версией.
   supabase_flutter: ^2.8.0
+  # Рендер Markdown в заметках («Дневник»).
+  markdown_widget: ^2.3.2+8
 
 dev_dependencies:
   flutter_test:

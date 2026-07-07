@@ -131,6 +131,21 @@ class StatSnapshots extends Table with _SyncColumns {
   Set<Column> get primaryKey => {id};
 }
 
+/// Заметки «Дневника героя». Тело — Markdown. Можно привязать к оси навыка,
+/// отметить настроение (эмодзи) и закрепить.
+class Notes extends Table with _SyncColumns {
+  TextColumn get title => text().withDefault(const Constant(''))();
+  TextColumn get body => text().withDefault(const Constant(''))();
+  TextColumn get axisId => text().nullable().references(SkillAxes, #id)();
+  TextColumn get mood => text().nullable()(); // эмодзи настроения
+  BoolColumn get pinned => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt =>
+      dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Архив завершённых сезонов («Зал славы»). Одна запись на закрытый месяц.
 class Seasons extends Table with _SyncColumns {
   IntColumn get year => integer()();
