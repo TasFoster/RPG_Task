@@ -1,14 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/database/seed.dart';
 import '../../../core/gamification/gamification_engine.dart';
 import '../../../core/models/enums.dart';
-
-const _uuid = Uuid();
 
 /// Диапазон статистики.
 enum StatsRange { week, month, all }
@@ -246,8 +243,15 @@ class StatsRepository {
             .get())
         .length;
 
+    // id стабилен и выводится из даты (а не случайный uuid): на разных
+    // устройствах снимок за один день получает одинаковый id, поэтому при
+    // синхронизации строки СЛИВАЮТСЯ, а не плодят дубликаты. Раньше из-за
+    // случайного id за один день могло накопиться несколько строк, и запрос
+    // getSingleOrNull ниже падал с «Bad state: Too many elements» ещё на
+    // старте приложения (bootstrap → recordDailySnapshot).
+    final stableId = 'snap_$dateKey';
     final companion = StatSnapshotsCompanion.insert(
-      id: _uuid.v4(),
+      id: stableId,
       dateKey: dateKey,
       totalXp: Value(profile.totalXp),
       lifetimeXp: Value(profile.lifetimeXp),
@@ -257,19 +261,30 @@ class StatsRepository {
       tasksDone: Value(tasksDone),
       habitsLogged: Value(habitsLogged),
       focusSessions: Value(focusSessions),
+      updatedAt: Value(now),
+      dirty: const Value(true),
     );
 
-    // Один снимок в сутки: если за сегодня уже есть — обновляем.
-    final existing = await (db.select(db.statSnapshots)
-          ..where((s) => s.dateKey.equals(dateKey)))
-        .getSingleOrNull();
-    if (existing == null) {
-      await db.into(db.statSnapshots).insert(companion);
-    } else {
-      await (db.update(db.statSnapshots)
-            ..where((s) => s.id.equals(existing.id)))
-          .write(companion);
+    // Самоизлечение: схлопываем старые дубликаты за сегодня со случайными id
+    // (натёкшие с других устройств при синхронизации). Помечаем их удалёнными
+    // с dirty, чтобы «надгробие» разъехалось по устройствам.
+    final dupes = await (db.select(db.statSnapshots)
+          ..where((s) =>
+              s.dateKey.equals(dateKey) &
+              s.isDeleted.equals(false) &
+              s.id.equals(stableId).not()))
+        .get();
+    for (final dup in dupes) {
+      await (db.update(db.statSnapshots)..where((s) => s.id.equals(dup.id)))
+          .write(StatSnapshotsCompanion(
+        isDeleted: const Value(true),
+        dirty: const Value(true),
+        updatedAt: Value(now),
+      ));
     }
+
+    // Канонический снимок за сегодня: создаём или обновляем по стабильному id.
+    await db.into(db.statSnapshots).insertOnConflictUpdate(companion);
   }
 }
 
