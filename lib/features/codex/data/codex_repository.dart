@@ -47,6 +47,34 @@ class CodexRepository {
     return tip;
   }
 
+  /// Отмечает конкретный совет открытым в Кодексе (история советов).
+  /// Используется, например, для утренних/вечерних пуш-рефлексий.
+  /// Идемпотентно: если запись уже есть — ничего не меняет.
+  /// Возвращает true, если совет открыт впервые.
+  Future<bool> recordTip(String key) async {
+    final existing = await (db.select(db.codexEntries)
+          ..where((c) => c.id.equals(key)))
+        .getSingleOrNull();
+    if (existing != null && !existing.isDeleted) return false;
+    if (existing == null) {
+      await db.into(db.codexEntries).insert(
+            CodexEntriesCompanion.insert(id: key),
+            mode: InsertMode.insertOrIgnore,
+          );
+    } else {
+      // Ранее удалённую запись возвращаем.
+      await (db.update(db.codexEntries)..where((c) => c.id.equals(key))).write(
+        CodexEntriesCompanion(
+          isDeleted: const Value(false),
+          dirty: const Value(true),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+    }
+    await _maybeAwardCompletion();
+    return true;
+  }
+
   /// Переключает избранное для цитаты (создаёт запись, если открывали лутом).
   Future<void> toggleFavorite(String key) async {
     final now = DateTime.now();

@@ -6,6 +6,16 @@ import 'app_database.dart';
 /// Фиксированный id единственного профиля игрока.
 const String kProfileId = 'me';
 
+/// «Очень старая» метка времени для сид-строк (профиль, стандартные оси).
+///
+/// Базовые строки создаются как `dirty = false` и с этой датой, поэтому:
+///  • они НЕ выгружаются в облако при первом запуске (не затирают данные,
+///    накопленные на другом устройстве, по правилу last-write-wins);
+///  • при подтягивании облачная версия всегда «новее» и корректно применяется.
+/// Как только пользователь что-то заработает локально, строка станет `dirty`
+/// с актуальной датой и будет синхронизироваться как обычно.
+final DateTime _seedEpoch = DateTime.fromMillisecondsSinceEpoch(0);
+
 class _AxisSeed {
   final String id;
   final String name;
@@ -32,9 +42,13 @@ Future<void> seedDatabase(AppDatabase db) async {
         ..where((p) => p.id.equals(kProfileId)))
       .getSingleOrNull();
   if (profile == null) {
-    await db
-        .into(db.profiles)
-        .insert(ProfilesCompanion.insert(id: kProfileId));
+    await db.into(db.profiles).insert(
+          ProfilesCompanion.insert(
+            id: kProfileId,
+            updatedAt: Value(_seedEpoch),
+            dirty: const Value(false),
+          ),
+        );
   }
 
   final axes = await db.select(db.skillAxes).get();
@@ -49,6 +63,8 @@ Future<void> seedDatabase(AppDatabase db) async {
               colorValue: a.color.toARGB32(),
               isDefault: const Value(true),
               sortOrder: Value(order++),
+              updatedAt: Value(_seedEpoch),
+              dirty: const Value(false),
             ),
           );
     }

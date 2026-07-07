@@ -1,14 +1,20 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/database/database_provider.dart';
+import '../core/notifications/notification_service.dart';
 import '../core/sync/sync_service.dart';
 import '../features/auth/data/auth_service.dart';
+import '../features/codex/data/codex_repository.dart';
+import '../features/tips/data/tips_catalog.dart';
+import '../features/tips/presentation/reflection_dialog.dart';
 import '../features/widgets/home_widgets_service.dart';
 import '../l10n/app_localizations.dart';
+import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
 /// Корневой виджет приложения.
@@ -37,6 +43,7 @@ class _RpgTaskAppState extends ConsumerState<RpgTaskApp> {
   AppLifecycleListener? _lifecycle;
   Timer? _widgetTimer;
   Timer? _syncTimer;
+  StreamSubscription<String>? _tapSub;
 
   @override
   void initState() {
@@ -48,6 +55,36 @@ class _RpgTaskAppState extends ConsumerState<RpgTaskApp> {
     _widgetTimer =
         Timer.periodic(_widgetRefreshInterval, (_) => _refreshWidgets());
     _syncTimer = Timer.periodic(_syncInterval, (_) => _sync());
+
+    // Тапы по пуш-советам (утро/вечер): показать рефлексию и сохранить в историю.
+    final notifications = ref.read(notificationServiceProvider);
+    _tapSub = notifications.onNotificationTap.listen(_handleNotificationPayload);
+    // Холодный старт по тапу — обработать после первого кадра (навигатор готов).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final launch = notifications.takeLaunchPayload();
+      if (launch != null) _handleNotificationPayload(launch);
+    });
+  }
+
+  /// Обрабатывает payload нажатого уведомления. Формат для советов:
+  /// `tip:<slot>:<ключ_совета>` (slot — tip_morning/tip_evening).
+  Future<void> _handleNotificationPayload(String payload) async {
+    final parts = payload.split(':');
+    if (parts.length < 3 || parts.first != 'tip') return;
+    final slotKey = parts[1];
+    final tipKey = parts.sublist(2).join(':');
+    if (tipKey.isEmpty) return;
+
+    final tip = tipsCatalog.firstWhereOrNull((t) => t.key == tipKey);
+    if (tip == null) return;
+
+    // Сохраняем совет в историю (Кодекс героя), затем показываем модалку.
+    await ref.read(codexRepositoryProvider).recordTip(tip.key);
+    if (!mounted) return;
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx != null && ctx.mounted) {
+      await showReflectionDialog(ctx, slotKey: slotKey, tip: tip);
+    }
   }
 
   void _refreshWidgets() {
@@ -64,6 +101,7 @@ class _RpgTaskAppState extends ConsumerState<RpgTaskApp> {
   void dispose() {
     _widgetTimer?.cancel();
     _syncTimer?.cancel();
+    _tapSub?.cancel();
     _lifecycle?.dispose();
     super.dispose();
   }

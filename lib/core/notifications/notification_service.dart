@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +35,30 @@ class NotificationService {
   final bool? _forceEnabled;
   bool _ready = false;
 
+  /// Поток payload'ов нажатых уведомлений (когда приложение уже запущено).
+  /// Например, 'tip:tip_evening:<ключ_совета>'. Слушается в корневом виджете.
+  final StreamController<String> _tapController =
+      StreamController<String>.broadcast();
+  Stream<String> get onNotificationTap => _tapController.stream;
+
+  /// Payload уведомления, которым приложение было запущено «с нуля»
+  /// (холодный старт по тапу). Забирается один раз через [takeLaunchPayload].
+  String? _launchPayload;
+
+  /// Возвращает и очищает payload холодного старта (см. [_launchPayload]).
+  String? takeLaunchPayload() {
+    final p = _launchPayload;
+    _launchPayload = null;
+    return p;
+  }
+
+  void _onNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload != null && payload.isNotEmpty) {
+      _tapController.add(payload);
+    }
+  }
+
   /// Платформы, где нативные уведомления доступны.
   bool get _supported =>
       _forceEnabled ??
@@ -63,7 +89,18 @@ class NotificationService {
     );
     await _plugin.initialize(
       const InitializationSettings(android: androidInit, iOS: darwinInit, macOS: darwinInit),
+      onDidReceiveNotificationResponse: _onNotificationResponse,
     );
+
+    // Если приложение запущено тапом по уведомлению из свёрнутого/закрытого
+    // состояния — сохраняем payload, чтобы обработать после старта UI.
+    final launch = await _plugin.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp ?? false) {
+      final payload = launch!.notificationResponse?.payload;
+      if (payload != null && payload.isNotEmpty) {
+        _launchPayload = payload;
+      }
+    }
 
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -163,11 +200,14 @@ class NotificationService {
   /// Ежедневный совет/цитата на минуту суток [minuteOfDay] (утро/вечер).
   /// [slotKey] — стабильный ключ слота ('tip_morning'/'tip_evening'), чтобы
   /// перепланирование перезаписывало прежнее уведомление, а не плодило дубли.
+  /// [tipKey] — ключ совета из каталога; попадает в payload, чтобы по тапу
+  /// показать именно этот совет и сохранить его в историю (Кодекс).
   Future<void> scheduleDailyTip({
     required String slotKey,
     required int minuteOfDay,
     required String title,
     required String body,
+    String? tipKey,
   }) async {
     if (!_supported) return;
     await init();
@@ -180,7 +220,9 @@ class NotificationService {
       _details(NotificationChannels.reminders),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
-      payload: 'tip:$slotKey',
+      payload: (tipKey == null || tipKey.isEmpty)
+          ? 'tip:$slotKey'
+          : 'tip:$slotKey:$tipKey',
     );
   }
 

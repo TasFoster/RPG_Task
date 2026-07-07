@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/tasks/presentation/tasks_screen.dart';
@@ -23,9 +24,14 @@ import '../../features/notes/presentation/notes_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../widgets/home_shell.dart';
 
+/// Корневой ключ навигатора — нужен, чтобы показывать глобальные диалоги
+/// (например, модалку рефлексии по тапу на пуш) вне контекста конкретного экрана.
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
 /// Строит конфигурацию навигации. [initialLocation] задаётся при старте
 /// (например, '/onboarding' при первом запуске).
 GoRouter buildAppRouter({String initialLocation = '/tasks'}) => GoRouter(
+  navigatorKey: rootNavigatorKey,
   initialLocation: initialLocation,
   routes: [
     GoRoute(

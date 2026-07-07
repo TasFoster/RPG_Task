@@ -38,7 +38,13 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
     final n = widget.note;
     _titleController = TextEditingController(text: n?.title ?? '');
     _bodyController = TextEditingController(text: n?.body ?? '');
-    _tabController = TabController(length: 2, vsync: this);
+    // Существующую запись открываем сразу в режиме «Просмотр» (Markdown),
+    // новую — в «Правке», чтобы можно было начать писать.
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: n != null ? 1 : 0,
+    );
     _axisId = n?.axisId;
     _mood = n?.mood;
     _pinned = n?.pinned ?? false;

@@ -22,6 +22,7 @@ Future<void> applyTipPushSchedule(
       minuteOfDay: settings.morningMinute,
       title: 'Утренний девиз',
       body: t == null ? '' : _body(t),
+      tipKey: t?.key,
     );
   } else {
     await notifications.cancelDailyTip('tip_morning');
@@ -35,6 +36,7 @@ Future<void> applyTipPushSchedule(
       minuteOfDay: settings.eveningMinute,
       title: 'Вечерняя рефлексия',
       body: t == null ? '' : _body(t),
+      tipKey: t?.key,
     );
   } else {
     await notifications.cancelDailyTip('tip_evening');

@@ -322,9 +322,49 @@ class SyncStatusCard extends ConsumerWidget {
                   : const Icon(Icons.sync),
               label: const Text('Синхронизировать сейчас'),
             ),
+            const SizedBox(height: 4),
+            TextButton.icon(
+              onPressed: busy ? null : () => _confirmForceUpload(context, ref),
+              icon: const Icon(Icons.cloud_upload_outlined, size: 18),
+              label: const Text('Отправить мои данные в облако'),
+            ),
+            Text(
+              'Если опыт, золото или задачи «потерялись» — откройте это на '
+              'устройстве с верными данными и перезалейте их в облако.',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  /// Спрашивает подтверждение и делает данные этого устройства основными.
+  Future<void> _confirmForceUpload(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Отправить мои данные в облако?'),
+        content: const Text(
+          'Данные этого устройства станут основными: они перезапишут облако и '
+          'подтянутся на другие устройства. Используйте на устройстве, где '
+          'данные верные.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Отправить'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(syncControllerProvider.notifier).forceUploadLocal();
+    }
   }
 }

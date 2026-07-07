@@ -127,7 +127,6 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     final note = filtered[i];
                     return _NoteTile(
                       note: note,
-                      axis: axesById[note.axisId],
                       onTap: () => _openEditor(note),
                     );
                   },
@@ -143,14 +142,8 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
 class _NoteTile extends ConsumerWidget {
   final Note note;
-  final SkillAxe? axis;
   final VoidCallback onTap;
-  const _NoteTile({required this.note, required this.axis, required this.onTap});
-
-  String _preview(String body) {
-    final oneLine = body.replaceAll(RegExp(r'\s+'), ' ').trim();
-    return oneLine.length > 100 ? '${oneLine.substring(0, 100)}…' : oneLine;
-  }
+  const _NoteTile({required this.note, required this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -201,26 +194,7 @@ class _NoteTile extends ConsumerWidget {
               ),
             ],
           ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (note.body.trim().isNotEmpty)
-                Text(_preview(note.body),
-                    maxLines: 2, overflow: TextOverflow.ellipsis),
-              if (axis != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Row(
-                    children: [
-                      Icon(materialIcon(axis!.iconCodePoint),
-                          size: 14, color: Color(axis!.colorValue)),
-                      const SizedBox(width: 4),
-                      Text(axis!.name, style: theme.textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+          // На плашке показываем только заголовок (тело — при открытии записи).
           trailing: PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {

@@ -13,6 +13,13 @@ const String _kRemoteTable = 'sync_rows';
 const String _kLastPullKey = 'sync_last_pull';
 const String _kSyncUserKey = 'sync_user_id';
 
+/// «Нахлёст» окна подтягивания: каждую синхронизацию перечитываем ещё и строки
+/// за последние [_kPullOverlap] до курсора. Это защищает от расхождения часов
+/// между устройствами (изменение с чуть «отставшей» датой иначе навсегда
+/// проскочило бы мимо курсора). Повторное применение безопасно —
+/// работает last-write-wins по `updated_at`.
+const Duration _kPullOverlap = Duration(days: 2);
+
 /// Обёртка над локальной таблицей Drift для универсальной синхронизации.
 /// Все синхронизируемые таблицы имеют столбцы id/updated_at/is_deleted/dirty
 /// (миксин _SyncColumns), поэтому доступ к ним однотипный.
@@ -131,6 +138,32 @@ class SyncController extends Notifier<SyncState> {
     }
   }
 
+  /// Восстановление после рассинхронизации: делает ДАННЫЕ ЭТОГО УСТРОЙСТВА
+  /// источником истины. Помечает все локальные строки как изменённые и
+  /// проставляет им свежую дату, после чего запускает синхронизацию — так они
+  /// гарантированно «выигрывают» last-write-wins на других устройствах.
+  ///
+  /// Нужно, если из-за прежней ошибки на одном из устройств данные (опыт,
+  /// золото, статусы задач) затёрлись пустыми. Запускать на устройстве с
+  /// ПРАВИЛЬНЫМИ данными.
+  Future<void> forceUploadLocal() async {
+    if (!_ready) {
+      state = state.copyWith(status: SyncStatus.offline, error: null);
+      return;
+    }
+    if (_running) return;
+    final db = ref.read(databaseProvider);
+    // Drift хранит DateTime как unix-секунды — ставим текущее время.
+    final nowSeconds = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    for (final entity in syncEntities(db)) {
+      await db.customStatement(
+        'UPDATE ${entity.name} SET dirty = 1, updated_at = ?',
+        [nowSeconds],
+      );
+    }
+    await syncNow();
+  }
+
   /// Если на устройстве сменился аккаунт — сбрасываем «точку подтягивания»
   /// (иначе данные разных пользователей смешаются). Полная очистка локальных
   /// данных при смене пользователя описана в docs/SUPABASE_RU.md.
@@ -176,9 +209,19 @@ class SyncController extends Notifier<SyncState> {
     final prefs = await SharedPreferences.getInstance();
     final lastPull = prefs.getString(_kLastPullKey);
 
-    var query = _client.from(_kRemoteTable).select();
+    // Выбираем изменения с курсора минус «нахлёст» (защита от расхождения часов).
+    // Сам курсор при этом назад не сдвигаем — только раздвигаем окно чтения.
+    String? since = lastPull;
     if (lastPull != null) {
-      query = query.gt('updated_at', lastPull);
+      final parsed = DateTime.tryParse(lastPull);
+      if (parsed != null) {
+        since = parsed.toUtc().subtract(_kPullOverlap).toIso8601String();
+      }
+    }
+
+    var query = _client.from(_kRemoteTable).select();
+    if (since != null) {
+      query = query.gt('updated_at', since);
     }
     final remote = await query;
     if (remote.isEmpty) return;
@@ -190,13 +233,22 @@ class SyncController extends Notifier<SyncState> {
     for (final entity in syncEntities(db)) {
       final rows = remote.where((r) => r['table_name'] == entity.name);
       for (final r in rows) {
-        final data = Map<String, dynamic>.from(r['data'] as Map);
-        final id = r['row_id'] as String;
-        final remoteSeconds = (data['updated_at'] as int?) ?? 0;
-        final localSeconds = await entity.localUpdatedAt(db, id);
-        // Last-write-wins: применяем только если облачная версия новее.
-        if (localSeconds == null || remoteSeconds > localSeconds) {
-          await entity.applyRemote(db, data);
+        // Ошибка на одной строке (несовместимая схема, битые данные, FK)
+        // не должна срывать весь пул — логируем и продолжаем со следующей.
+        try {
+          final data = Map<String, dynamic>.from(r['data'] as Map);
+          final id = r['row_id'] as String;
+          final remoteSeconds = (data['updated_at'] as int?) ?? 0;
+          final localSeconds = await entity.localUpdatedAt(db, id);
+          // Last-write-wins: применяем только если облачная версия новее.
+          if (localSeconds == null || remoteSeconds > localSeconds) {
+            await entity.applyRemote(db, data);
+          }
+        } catch (e, st) {
+          if (kDebugMode) {
+            debugPrint(
+                'Sync: пропущена строка ${entity.name}/${r['row_id']}: $e\n$st');
+          }
         }
         final upd = r['updated_at'] as String;
         if (upd.compareTo(maxUpdated) > 0) maxUpdated = upd;
