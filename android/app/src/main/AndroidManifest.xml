@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Доступ в сеть (Supabase: авторизация и синхронизация).
+         Обязателен в главном манифесте — иначе release-сборка без интернета
+         (в debug/profile он есть по умолчанию, поэтому баг виден только в release). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Фаза 3 — уведомления и напоминания. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
