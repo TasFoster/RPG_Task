@@ -58,8 +58,55 @@ class TaskRepository {
     }
   }
 
+  /// Редактирование задачи. Переустанавливает напоминание согласно [reminderAt]
+  /// (null — снять напоминание).
+  Future<void> updateTask({
+    required String id,
+    required String title,
+    String? notes,
+    String? axisId,
+    required Difficulty difficulty,
+    required int estimatedMinutes,
+    DateTime? dueAt,
+    DateTime? reminderAt,
+  }) async {
+    await (db.update(db.tasks)..where((t) => t.id.equals(id))).write(
+      TasksCompanion(
+        title: Value(title),
+        notes: Value(notes),
+        axisId: Value(axisId),
+        difficulty: Value(difficulty),
+        estimatedMinutes: Value(estimatedMinutes),
+        dueAt: Value(dueAt),
+        reminderAt: Value(reminderAt),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    // Перепланируем напоминание: сначала снимаем старое, затем ставим новое.
+    await notifications.cancel(id);
+    if (reminderAt != null && reminderAt.isAfter(DateTime.now())) {
+      await notifications.scheduleTaskReminder(
+        entityId: id,
+        title: title,
+        when: reminderAt,
+      );
+    }
+  }
+
   /// Отмена напоминания (при выполнении задачи оно больше не нужно).
   Future<void> cancelReminder(String id) => notifications.cancel(id);
+
+  /// Восстановление мягко удалённой задачи (для отмены удаления).
+  Future<void> restore(String id) async {
+    await (db.update(db.tasks)..where((t) => t.id.equals(id))).write(
+      TasksCompanion(
+        isDeleted: const Value(false),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
 
   /// Мягкое удаление (тумбстоун для будущей синхронизации).
   Future<void> softDelete(String id) async {

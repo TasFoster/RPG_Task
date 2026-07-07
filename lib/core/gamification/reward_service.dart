@@ -54,6 +54,35 @@ class RewardService {
     });
   }
 
+  /// Снятие отметки о выполнении задачи: возвращает её в активные и
+  /// откатывает ранее начисленные XP/золото (с профиля и оси навыка).
+  /// Всё в одной транзакции.
+  Future<void> uncompleteTask(Task task) {
+    return db.transaction(() async {
+      final now = DateTime.now();
+
+      // Откатываем ровно то, что было начислено при выполнении.
+      await _revokeRewards(
+        xp: task.xpAwarded,
+        gold: task.goldAwarded,
+        reason: RewardReason.manual,
+        refId: task.id,
+        axisId: task.axisId,
+      );
+
+      await (db.update(db.tasks)..where((t) => t.id.equals(task.id))).write(
+        TasksCompanion(
+          status: const Value(TaskStatus.pending),
+          completedAt: const Value(null),
+          xpAwarded: const Value(0),
+          goldAwarded: const Value(0),
+          dirty: const Value(true),
+          updatedAt: Value(now),
+        ),
+      );
+    });
+  }
+
   /// Завершение привычки за сегодня. Возвращает null, если уже выполнена сегодня.
   Future<RewardResult?> completeHabit(Habit habit) {
     return db.transaction(() async {
@@ -174,6 +203,52 @@ class RewardService {
     await _logCurrency(CurrencyKind.xp, reward.xp, reason, refId);
     await _logCurrency(CurrencyKind.gold, reward.gold, reason, refId);
     await _logCurrency(CurrencyKind.gems, reward.gems, reason, refId);
+  }
+
+  /// Откат ранее начисленных ресурсов (обратная операция к [_applyRewards]).
+  /// Значения профиля/оси не опускаются ниже нуля.
+  Future<void> _revokeRewards({
+    required int xp,
+    required int gold,
+    int gems = 0,
+    required RewardReason reason,
+    String? refId,
+    String? axisId,
+  }) async {
+    if (xp == 0 && gold == 0 && gems == 0) return;
+    final now = DateTime.now();
+    final profile = await (db.select(db.profiles)
+          ..where((p) => p.id.equals(kProfileId)))
+        .getSingle();
+
+    await (db.update(db.profiles)..where((p) => p.id.equals(kProfileId))).write(
+      ProfilesCompanion(
+        totalXp: Value((profile.totalXp - xp).clamp(0, 1 << 62)),
+        gold: Value((profile.gold - gold).clamp(0, 1 << 62)),
+        gems: Value((profile.gems - gems).clamp(0, 1 << 62)),
+        dirty: const Value(true),
+        updatedAt: Value(now),
+      ),
+    );
+
+    if (axisId != null && xp != 0) {
+      final axis = await (db.select(db.skillAxes)
+            ..where((a) => a.id.equals(axisId)))
+          .getSingleOrNull();
+      if (axis != null) {
+        await (db.update(db.skillAxes)..where((a) => a.id.equals(axisId)))
+            .write(SkillAxesCompanion(
+          xp: Value((axis.xp - xp).clamp(0, 1 << 62)),
+          dirty: const Value(true),
+          updatedAt: Value(now),
+        ));
+      }
+    }
+
+    // В журнал пишем отрицательные суммы (симметрично начислению).
+    await _logCurrency(CurrencyKind.xp, -xp, reason, refId);
+    await _logCurrency(CurrencyKind.gold, -gold, reason, refId);
+    await _logCurrency(CurrencyKind.gems, -gems, reason, refId);
   }
 
   Future<void> _logCurrency(

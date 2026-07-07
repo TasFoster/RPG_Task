@@ -8,20 +8,39 @@ import '../../../shared/utils/labels.dart';
 import '../../skills/data/skill_repository.dart';
 import '../data/task_repository.dart';
 
-/// Диалог создания новой задачи.
+/// Диалог создания или редактирования задачи.
+///
+/// Если [task] задан — диалог работает в режиме редактирования (поля
+/// предзаполнены, сохранение обновляет существующую запись). Иначе создаётся
+/// новая задача.
 class AddTaskDialog extends ConsumerStatefulWidget {
-  const AddTaskDialog({super.key});
+  final Task? task;
+
+  const AddTaskDialog({super.key, this.task});
 
   @override
   ConsumerState<AddTaskDialog> createState() => _AddTaskDialogState();
 }
 
 class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
-  final _titleController = TextEditingController();
-  Difficulty _difficulty = Difficulty.auto;
-  String? _axisId;
-  int _minutes = 25;
-  DateTime? _reminderAt;
+  late final TextEditingController _titleController;
+  late Difficulty _difficulty;
+  late String? _axisId;
+  late int _minutes;
+  late DateTime? _reminderAt;
+
+  bool get _isEditing => widget.task != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final t = widget.task;
+    _titleController = TextEditingController(text: t?.title ?? '');
+    _difficulty = t?.difficulty ?? Difficulty.auto;
+    _axisId = t?.axisId;
+    _minutes = t?.estimatedMinutes ?? 25;
+    _reminderAt = t?.reminderAt;
+  }
 
   @override
   void dispose() {
@@ -56,13 +75,27 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
-    await ref.read(taskRepositoryProvider).addTask(
-          title: title,
-          axisId: _axisId,
-          difficulty: _difficulty,
-          estimatedMinutes: _minutes,
-          reminderAt: _reminderAt,
-        );
+    final repo = ref.read(taskRepositoryProvider);
+    if (_isEditing) {
+      await repo.updateTask(
+        id: widget.task!.id,
+        title: title,
+        notes: widget.task!.notes,
+        axisId: _axisId,
+        difficulty: _difficulty,
+        estimatedMinutes: _minutes,
+        dueAt: widget.task!.dueAt,
+        reminderAt: _reminderAt,
+      );
+    } else {
+      await repo.addTask(
+        title: title,
+        axisId: _axisId,
+        difficulty: _difficulty,
+        estimatedMinutes: _minutes,
+        reminderAt: _reminderAt,
+      );
+    }
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -71,7 +104,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     final axesAsync = ref.watch(axesStreamProvider);
 
     return AlertDialog(
-      title: const Text('Новая задача'),
+      title: Text(_isEditing ? 'Редактировать задачу' : 'Новая задача'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -161,7 +194,10 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Отмена'),
         ),
-        FilledButton(onPressed: _save, child: const Text('Создать')),
+        FilledButton(
+          onPressed: _save,
+          child: Text(_isEditing ? 'Сохранить' : 'Создать'),
+        ),
       ],
     );
   }

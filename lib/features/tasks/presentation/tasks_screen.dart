@@ -57,26 +57,82 @@ class TasksScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Ошибка: $e')),
         data: (tasks) {
+          final pending =
+              tasks.where((t) => t.status == TaskStatus.pending).toList();
+          final done =
+              tasks.where((t) => t.status == TaskStatus.done).toList();
+
           return Column(
             children: [
               const DailyTipCard(),
               Expanded(
-                child: tasks.isEmpty
+                child: (pending.isEmpty && done.isEmpty)
                     ? const _EmptyState()
-                    : ListView.separated(
+                    : ListView(
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
-                        itemCount: tasks.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 4),
-                        itemBuilder: (context, i) {
-                          final task = tasks[i];
-                          return _TaskTile(
-                              task: task, axis: axesById[task.axisId]);
-                        },
+                        children: [
+                          for (final task in pending) ...[
+                            _TaskTile(
+                                task: task, axis: axesById[task.axisId]),
+                            const SizedBox(height: 4),
+                          ],
+                          if (pending.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Text(
+                                'Все задачи выполнены — герой отдыхает!',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant),
+                              ),
+                            ),
+                          if (done.isNotEmpty)
+                            _AchievementsSection(
+                              done: done,
+                              axesById: axesById,
+                            ),
+                        ],
                       ),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Сворачиваемая секция «Свершения» — выполненные задачи.
+class _AchievementsSection extends StatelessWidget {
+  final List<Task> done;
+  final Map<String, SkillAxe> axesById;
+  const _AchievementsSection({required this.done, required this.axesById});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Theme(
+      // Убираем разделители ExpansionTile для аккуратного вида в списке.
+      data: theme.copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        initiallyExpanded: false,
+        tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+        childrenPadding: EdgeInsets.zero,
+        leading: Icon(Icons.emoji_events_outlined,
+            color: theme.colorScheme.primary),
+        title: Text('Свершения (${done.length})',
+            style: theme.textTheme.titleSmall),
+        children: [
+          for (final task in done) ...[
+            _TaskTile(task: task, axis: axesById[task.axisId]),
+            const SizedBox(height: 4),
+          ],
+        ],
       ),
     );
   }
@@ -102,6 +158,45 @@ class _TaskTile extends ConsumerWidget {
       if (context.mounted) showRewardSnackBar(context, reward);
     }
 
+    Future<void> uncomplete() async {
+      await ref.read(rewardServiceProvider).uncompleteTask(task);
+      await updateHomeWidgets(ref.read(databaseProvider));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(const SnackBar(
+            content: Text('Выполнение снято, награда возвращена'),
+          ));
+      }
+    }
+
+    Future<void> edit() async {
+      await showDialog(
+        context: context,
+        builder: (_) => AddTaskDialog(task: task),
+      );
+    }
+
+    void deleteWithUndo() {
+      final messenger = ScaffoldMessenger.of(context);
+      final repo = ref.read(taskRepositoryProvider);
+      final db = ref.read(databaseProvider);
+      repo.softDelete(task.id);
+      updateHomeWidgets(db);
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(
+          content: Text('Задача удалена: ${task.title}'),
+          action: SnackBarAction(
+            label: 'Отменить',
+            onPressed: () async {
+              await repo.restore(task.id);
+              await updateHomeWidgets(db);
+            },
+          ),
+        ));
+    }
+
     return Dismissible(
       key: ValueKey(task.id),
       direction: DismissDirection.endToStart,
@@ -111,16 +206,18 @@ class _TaskTile extends ConsumerWidget {
         color: theme.colorScheme.errorContainer,
         child: Icon(Icons.delete, color: theme.colorScheme.onErrorContainer),
       ),
-      onDismissed: (_) => ref.read(taskRepositoryProvider).softDelete(task.id),
+      onDismissed: (_) => deleteWithUndo(),
       child: Card(
         margin: EdgeInsets.zero,
         child: ListTile(
+          onTap: edit,
           leading: IconButton(
             icon: Icon(done
                 ? Icons.check_circle
                 : Icons.radio_button_unchecked),
             color: done ? theme.colorScheme.primary : null,
-            onPressed: done ? null : complete,
+            tooltip: done ? 'Снять выполнение' : 'Выполнить',
+            onPressed: done ? uncomplete : complete,
           ),
           title: Text(
             task.title,
@@ -149,6 +246,26 @@ class _TaskTile extends ConsumerWidget {
                     style: theme.textTheme.bodySmall
                         ?.copyWith(color: theme.colorScheme.primary)),
               ],
+            ],
+          ),
+          trailing: PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'edit':
+                  edit();
+                case 'uncomplete':
+                  uncomplete();
+                case 'delete':
+                  deleteWithUndo();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
+              if (done)
+                const PopupMenuItem(
+                    value: 'uncomplete', child: Text('Снять выполнение')),
+              const PopupMenuItem(value: 'delete', child: Text('Удалить')),
             ],
           ),
         ),
