@@ -24,6 +24,8 @@ part 'app_database.g.dart';
     InventoryItems,
     SleepLogs,
     CodexEntries,
+    StatSnapshots,
+    Seasons,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -33,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -58,6 +60,20 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(sleepLogs);
             await m.createTable(codexEntries);
+          }
+          // v4 → v5 (Статистика + Сезоны): снимки показателей, архив сезонов,
+          // сезонные поля профиля.
+          if (from < 5) {
+            await m.createTable(statSnapshots);
+            await m.createTable(seasons);
+            await m.addColumn(profiles, profiles.lifetimeXp);
+            await m.addColumn(profiles, profiles.prestige);
+            await m.addColumn(profiles, profiles.seasonYear);
+            await m.addColumn(profiles, profiles.seasonMonth);
+            // Существующим игрокам переносим накопленный опыт в lifetimeXp,
+            // чтобы достижения и статистика «всё время» не обнулились.
+            await customStatement(
+                'UPDATE profiles SET lifetime_xp = total_xp');
           }
         },
         beforeOpen: (details) async {

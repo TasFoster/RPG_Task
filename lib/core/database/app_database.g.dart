@@ -2970,6 +2970,54 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _lifetimeXpMeta = const VerificationMeta(
+    'lifetimeXp',
+  );
+  @override
+  late final GeneratedColumn<int> lifetimeXp = GeneratedColumn<int>(
+    'lifetime_xp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _prestigeMeta = const VerificationMeta(
+    'prestige',
+  );
+  @override
+  late final GeneratedColumn<int> prestige = GeneratedColumn<int>(
+    'prestige',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _seasonYearMeta = const VerificationMeta(
+    'seasonYear',
+  );
+  @override
+  late final GeneratedColumn<int> seasonYear = GeneratedColumn<int>(
+    'season_year',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _seasonMonthMeta = const VerificationMeta(
+    'seasonMonth',
+  );
+  @override
+  late final GeneratedColumn<int> seasonMonth = GeneratedColumn<int>(
+    'season_month',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _goldMeta = const VerificationMeta('gold');
   @override
   late final GeneratedColumn<int> gold = GeneratedColumn<int>(
@@ -2998,6 +3046,10 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
     dirty,
     displayName,
     totalXp,
+    lifetimeXp,
+    prestige,
+    seasonYear,
+    seasonMonth,
     gold,
     gems,
   ];
@@ -3051,6 +3103,33 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
         totalXp.isAcceptableOrUnknown(data['total_xp']!, _totalXpMeta),
       );
     }
+    if (data.containsKey('lifetime_xp')) {
+      context.handle(
+        _lifetimeXpMeta,
+        lifetimeXp.isAcceptableOrUnknown(data['lifetime_xp']!, _lifetimeXpMeta),
+      );
+    }
+    if (data.containsKey('prestige')) {
+      context.handle(
+        _prestigeMeta,
+        prestige.isAcceptableOrUnknown(data['prestige']!, _prestigeMeta),
+      );
+    }
+    if (data.containsKey('season_year')) {
+      context.handle(
+        _seasonYearMeta,
+        seasonYear.isAcceptableOrUnknown(data['season_year']!, _seasonYearMeta),
+      );
+    }
+    if (data.containsKey('season_month')) {
+      context.handle(
+        _seasonMonthMeta,
+        seasonMonth.isAcceptableOrUnknown(
+          data['season_month']!,
+          _seasonMonthMeta,
+        ),
+      );
+    }
     if (data.containsKey('gold')) {
       context.handle(
         _goldMeta,
@@ -3096,6 +3175,22 @@ class $ProfilesTable extends Profiles with TableInfo<$ProfilesTable, Profile> {
         DriftSqlType.int,
         data['${effectivePrefix}total_xp'],
       )!,
+      lifetimeXp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}lifetime_xp'],
+      )!,
+      prestige: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}prestige'],
+      )!,
+      seasonYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}season_year'],
+      )!,
+      seasonMonth: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}season_month'],
+      )!,
       gold: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}gold'],
@@ -3120,6 +3215,10 @@ class Profile extends DataClass implements Insertable<Profile> {
   final bool dirty;
   final String displayName;
   final int totalXp;
+  final int lifetimeXp;
+  final int prestige;
+  final int seasonYear;
+  final int seasonMonth;
   final int gold;
   final int gems;
   const Profile({
@@ -3129,6 +3228,10 @@ class Profile extends DataClass implements Insertable<Profile> {
     required this.dirty,
     required this.displayName,
     required this.totalXp,
+    required this.lifetimeXp,
+    required this.prestige,
+    required this.seasonYear,
+    required this.seasonMonth,
     required this.gold,
     required this.gems,
   });
@@ -3141,6 +3244,10 @@ class Profile extends DataClass implements Insertable<Profile> {
     map['dirty'] = Variable<bool>(dirty);
     map['display_name'] = Variable<String>(displayName);
     map['total_xp'] = Variable<int>(totalXp);
+    map['lifetime_xp'] = Variable<int>(lifetimeXp);
+    map['prestige'] = Variable<int>(prestige);
+    map['season_year'] = Variable<int>(seasonYear);
+    map['season_month'] = Variable<int>(seasonMonth);
     map['gold'] = Variable<int>(gold);
     map['gems'] = Variable<int>(gems);
     return map;
@@ -3154,6 +3261,10 @@ class Profile extends DataClass implements Insertable<Profile> {
       dirty: Value(dirty),
       displayName: Value(displayName),
       totalXp: Value(totalXp),
+      lifetimeXp: Value(lifetimeXp),
+      prestige: Value(prestige),
+      seasonYear: Value(seasonYear),
+      seasonMonth: Value(seasonMonth),
       gold: Value(gold),
       gems: Value(gems),
     );
@@ -3171,6 +3282,10 @@ class Profile extends DataClass implements Insertable<Profile> {
       dirty: serializer.fromJson<bool>(json['dirty']),
       displayName: serializer.fromJson<String>(json['displayName']),
       totalXp: serializer.fromJson<int>(json['totalXp']),
+      lifetimeXp: serializer.fromJson<int>(json['lifetimeXp']),
+      prestige: serializer.fromJson<int>(json['prestige']),
+      seasonYear: serializer.fromJson<int>(json['seasonYear']),
+      seasonMonth: serializer.fromJson<int>(json['seasonMonth']),
       gold: serializer.fromJson<int>(json['gold']),
       gems: serializer.fromJson<int>(json['gems']),
     );
@@ -3185,6 +3300,10 @@ class Profile extends DataClass implements Insertable<Profile> {
       'dirty': serializer.toJson<bool>(dirty),
       'displayName': serializer.toJson<String>(displayName),
       'totalXp': serializer.toJson<int>(totalXp),
+      'lifetimeXp': serializer.toJson<int>(lifetimeXp),
+      'prestige': serializer.toJson<int>(prestige),
+      'seasonYear': serializer.toJson<int>(seasonYear),
+      'seasonMonth': serializer.toJson<int>(seasonMonth),
       'gold': serializer.toJson<int>(gold),
       'gems': serializer.toJson<int>(gems),
     };
@@ -3197,6 +3316,10 @@ class Profile extends DataClass implements Insertable<Profile> {
     bool? dirty,
     String? displayName,
     int? totalXp,
+    int? lifetimeXp,
+    int? prestige,
+    int? seasonYear,
+    int? seasonMonth,
     int? gold,
     int? gems,
   }) => Profile(
@@ -3206,6 +3329,10 @@ class Profile extends DataClass implements Insertable<Profile> {
     dirty: dirty ?? this.dirty,
     displayName: displayName ?? this.displayName,
     totalXp: totalXp ?? this.totalXp,
+    lifetimeXp: lifetimeXp ?? this.lifetimeXp,
+    prestige: prestige ?? this.prestige,
+    seasonYear: seasonYear ?? this.seasonYear,
+    seasonMonth: seasonMonth ?? this.seasonMonth,
     gold: gold ?? this.gold,
     gems: gems ?? this.gems,
   );
@@ -3219,6 +3346,16 @@ class Profile extends DataClass implements Insertable<Profile> {
           ? data.displayName.value
           : this.displayName,
       totalXp: data.totalXp.present ? data.totalXp.value : this.totalXp,
+      lifetimeXp: data.lifetimeXp.present
+          ? data.lifetimeXp.value
+          : this.lifetimeXp,
+      prestige: data.prestige.present ? data.prestige.value : this.prestige,
+      seasonYear: data.seasonYear.present
+          ? data.seasonYear.value
+          : this.seasonYear,
+      seasonMonth: data.seasonMonth.present
+          ? data.seasonMonth.value
+          : this.seasonMonth,
       gold: data.gold.present ? data.gold.value : this.gold,
       gems: data.gems.present ? data.gems.value : this.gems,
     );
@@ -3233,6 +3370,10 @@ class Profile extends DataClass implements Insertable<Profile> {
           ..write('dirty: $dirty, ')
           ..write('displayName: $displayName, ')
           ..write('totalXp: $totalXp, ')
+          ..write('lifetimeXp: $lifetimeXp, ')
+          ..write('prestige: $prestige, ')
+          ..write('seasonYear: $seasonYear, ')
+          ..write('seasonMonth: $seasonMonth, ')
           ..write('gold: $gold, ')
           ..write('gems: $gems')
           ..write(')'))
@@ -3247,6 +3388,10 @@ class Profile extends DataClass implements Insertable<Profile> {
     dirty,
     displayName,
     totalXp,
+    lifetimeXp,
+    prestige,
+    seasonYear,
+    seasonMonth,
     gold,
     gems,
   );
@@ -3260,6 +3405,10 @@ class Profile extends DataClass implements Insertable<Profile> {
           other.dirty == this.dirty &&
           other.displayName == this.displayName &&
           other.totalXp == this.totalXp &&
+          other.lifetimeXp == this.lifetimeXp &&
+          other.prestige == this.prestige &&
+          other.seasonYear == this.seasonYear &&
+          other.seasonMonth == this.seasonMonth &&
           other.gold == this.gold &&
           other.gems == this.gems);
 }
@@ -3271,6 +3420,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
   final Value<bool> dirty;
   final Value<String> displayName;
   final Value<int> totalXp;
+  final Value<int> lifetimeXp;
+  final Value<int> prestige;
+  final Value<int> seasonYear;
+  final Value<int> seasonMonth;
   final Value<int> gold;
   final Value<int> gems;
   final Value<int> rowid;
@@ -3281,6 +3434,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     this.dirty = const Value.absent(),
     this.displayName = const Value.absent(),
     this.totalXp = const Value.absent(),
+    this.lifetimeXp = const Value.absent(),
+    this.prestige = const Value.absent(),
+    this.seasonYear = const Value.absent(),
+    this.seasonMonth = const Value.absent(),
     this.gold = const Value.absent(),
     this.gems = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3292,6 +3449,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     this.dirty = const Value.absent(),
     this.displayName = const Value.absent(),
     this.totalXp = const Value.absent(),
+    this.lifetimeXp = const Value.absent(),
+    this.prestige = const Value.absent(),
+    this.seasonYear = const Value.absent(),
+    this.seasonMonth = const Value.absent(),
     this.gold = const Value.absent(),
     this.gems = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3303,6 +3464,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     Expression<bool>? dirty,
     Expression<String>? displayName,
     Expression<int>? totalXp,
+    Expression<int>? lifetimeXp,
+    Expression<int>? prestige,
+    Expression<int>? seasonYear,
+    Expression<int>? seasonMonth,
     Expression<int>? gold,
     Expression<int>? gems,
     Expression<int>? rowid,
@@ -3314,6 +3479,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
       if (dirty != null) 'dirty': dirty,
       if (displayName != null) 'display_name': displayName,
       if (totalXp != null) 'total_xp': totalXp,
+      if (lifetimeXp != null) 'lifetime_xp': lifetimeXp,
+      if (prestige != null) 'prestige': prestige,
+      if (seasonYear != null) 'season_year': seasonYear,
+      if (seasonMonth != null) 'season_month': seasonMonth,
       if (gold != null) 'gold': gold,
       if (gems != null) 'gems': gems,
       if (rowid != null) 'rowid': rowid,
@@ -3327,6 +3496,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     Value<bool>? dirty,
     Value<String>? displayName,
     Value<int>? totalXp,
+    Value<int>? lifetimeXp,
+    Value<int>? prestige,
+    Value<int>? seasonYear,
+    Value<int>? seasonMonth,
     Value<int>? gold,
     Value<int>? gems,
     Value<int>? rowid,
@@ -3338,6 +3511,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
       dirty: dirty ?? this.dirty,
       displayName: displayName ?? this.displayName,
       totalXp: totalXp ?? this.totalXp,
+      lifetimeXp: lifetimeXp ?? this.lifetimeXp,
+      prestige: prestige ?? this.prestige,
+      seasonYear: seasonYear ?? this.seasonYear,
+      seasonMonth: seasonMonth ?? this.seasonMonth,
       gold: gold ?? this.gold,
       gems: gems ?? this.gems,
       rowid: rowid ?? this.rowid,
@@ -3365,6 +3542,18 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
     if (totalXp.present) {
       map['total_xp'] = Variable<int>(totalXp.value);
     }
+    if (lifetimeXp.present) {
+      map['lifetime_xp'] = Variable<int>(lifetimeXp.value);
+    }
+    if (prestige.present) {
+      map['prestige'] = Variable<int>(prestige.value);
+    }
+    if (seasonYear.present) {
+      map['season_year'] = Variable<int>(seasonYear.value);
+    }
+    if (seasonMonth.present) {
+      map['season_month'] = Variable<int>(seasonMonth.value);
+    }
     if (gold.present) {
       map['gold'] = Variable<int>(gold.value);
     }
@@ -3386,6 +3575,10 @@ class ProfilesCompanion extends UpdateCompanion<Profile> {
           ..write('dirty: $dirty, ')
           ..write('displayName: $displayName, ')
           ..write('totalXp: $totalXp, ')
+          ..write('lifetimeXp: $lifetimeXp, ')
+          ..write('prestige: $prestige, ')
+          ..write('seasonYear: $seasonYear, ')
+          ..write('seasonMonth: $seasonMonth, ')
           ..write('gold: $gold, ')
           ..write('gems: $gems, ')
           ..write('rowid: $rowid')
@@ -7874,6 +8067,1636 @@ class CodexEntriesCompanion extends UpdateCompanion<CodexEntry> {
   }
 }
 
+class $StatSnapshotsTable extends StatSnapshots
+    with TableInfo<$StatSnapshotsTable, StatSnapshot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StatSnapshotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _dirtyMeta = const VerificationMeta('dirty');
+  @override
+  late final GeneratedColumn<bool> dirty = GeneratedColumn<bool>(
+    'dirty',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("dirty" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _dateKeyMeta = const VerificationMeta(
+    'dateKey',
+  );
+  @override
+  late final GeneratedColumn<String> dateKey = GeneratedColumn<String>(
+    'date_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalXpMeta = const VerificationMeta(
+    'totalXp',
+  );
+  @override
+  late final GeneratedColumn<int> totalXp = GeneratedColumn<int>(
+    'total_xp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lifetimeXpMeta = const VerificationMeta(
+    'lifetimeXp',
+  );
+  @override
+  late final GeneratedColumn<int> lifetimeXp = GeneratedColumn<int>(
+    'lifetime_xp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<int> level = GeneratedColumn<int>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _goldMeta = const VerificationMeta('gold');
+  @override
+  late final GeneratedColumn<int> gold = GeneratedColumn<int>(
+    'gold',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _gemsMeta = const VerificationMeta('gems');
+  @override
+  late final GeneratedColumn<int> gems = GeneratedColumn<int>(
+    'gems',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _tasksDoneMeta = const VerificationMeta(
+    'tasksDone',
+  );
+  @override
+  late final GeneratedColumn<int> tasksDone = GeneratedColumn<int>(
+    'tasks_done',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _habitsLoggedMeta = const VerificationMeta(
+    'habitsLogged',
+  );
+  @override
+  late final GeneratedColumn<int> habitsLogged = GeneratedColumn<int>(
+    'habits_logged',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _focusSessionsMeta = const VerificationMeta(
+    'focusSessions',
+  );
+  @override
+  late final GeneratedColumn<int> focusSessions = GeneratedColumn<int>(
+    'focus_sessions',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    updatedAt,
+    isDeleted,
+    dirty,
+    dateKey,
+    totalXp,
+    lifetimeXp,
+    level,
+    gold,
+    gems,
+    tasksDone,
+    habitsLogged,
+    focusSessions,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stat_snapshots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StatSnapshot> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('dirty')) {
+      context.handle(
+        _dirtyMeta,
+        dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta),
+      );
+    }
+    if (data.containsKey('date_key')) {
+      context.handle(
+        _dateKeyMeta,
+        dateKey.isAcceptableOrUnknown(data['date_key']!, _dateKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateKeyMeta);
+    }
+    if (data.containsKey('total_xp')) {
+      context.handle(
+        _totalXpMeta,
+        totalXp.isAcceptableOrUnknown(data['total_xp']!, _totalXpMeta),
+      );
+    }
+    if (data.containsKey('lifetime_xp')) {
+      context.handle(
+        _lifetimeXpMeta,
+        lifetimeXp.isAcceptableOrUnknown(data['lifetime_xp']!, _lifetimeXpMeta),
+      );
+    }
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    }
+    if (data.containsKey('gold')) {
+      context.handle(
+        _goldMeta,
+        gold.isAcceptableOrUnknown(data['gold']!, _goldMeta),
+      );
+    }
+    if (data.containsKey('gems')) {
+      context.handle(
+        _gemsMeta,
+        gems.isAcceptableOrUnknown(data['gems']!, _gemsMeta),
+      );
+    }
+    if (data.containsKey('tasks_done')) {
+      context.handle(
+        _tasksDoneMeta,
+        tasksDone.isAcceptableOrUnknown(data['tasks_done']!, _tasksDoneMeta),
+      );
+    }
+    if (data.containsKey('habits_logged')) {
+      context.handle(
+        _habitsLoggedMeta,
+        habitsLogged.isAcceptableOrUnknown(
+          data['habits_logged']!,
+          _habitsLoggedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('focus_sessions')) {
+      context.handle(
+        _focusSessionsMeta,
+        focusSessions.isAcceptableOrUnknown(
+          data['focus_sessions']!,
+          _focusSessionsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StatSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StatSnapshot(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      dirty: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}dirty'],
+      )!,
+      dateKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date_key'],
+      )!,
+      totalXp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_xp'],
+      )!,
+      lifetimeXp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}lifetime_xp'],
+      )!,
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}level'],
+      )!,
+      gold: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}gold'],
+      )!,
+      gems: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}gems'],
+      )!,
+      tasksDone: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tasks_done'],
+      )!,
+      habitsLogged: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}habits_logged'],
+      )!,
+      focusSessions: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}focus_sessions'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $StatSnapshotsTable createAlias(String alias) {
+    return $StatSnapshotsTable(attachedDatabase, alias);
+  }
+}
+
+class StatSnapshot extends DataClass implements Insertable<StatSnapshot> {
+  final String id;
+  final DateTime updatedAt;
+  final bool isDeleted;
+  final bool dirty;
+  final String dateKey;
+  final int totalXp;
+  final int lifetimeXp;
+  final int level;
+  final int gold;
+  final int gems;
+  final int tasksDone;
+  final int habitsLogged;
+  final int focusSessions;
+  final DateTime createdAt;
+  const StatSnapshot({
+    required this.id,
+    required this.updatedAt,
+    required this.isDeleted,
+    required this.dirty,
+    required this.dateKey,
+    required this.totalXp,
+    required this.lifetimeXp,
+    required this.level,
+    required this.gold,
+    required this.gems,
+    required this.tasksDone,
+    required this.habitsLogged,
+    required this.focusSessions,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['dirty'] = Variable<bool>(dirty);
+    map['date_key'] = Variable<String>(dateKey);
+    map['total_xp'] = Variable<int>(totalXp);
+    map['lifetime_xp'] = Variable<int>(lifetimeXp);
+    map['level'] = Variable<int>(level);
+    map['gold'] = Variable<int>(gold);
+    map['gems'] = Variable<int>(gems);
+    map['tasks_done'] = Variable<int>(tasksDone);
+    map['habits_logged'] = Variable<int>(habitsLogged);
+    map['focus_sessions'] = Variable<int>(focusSessions);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  StatSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return StatSnapshotsCompanion(
+      id: Value(id),
+      updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
+      dirty: Value(dirty),
+      dateKey: Value(dateKey),
+      totalXp: Value(totalXp),
+      lifetimeXp: Value(lifetimeXp),
+      level: Value(level),
+      gold: Value(gold),
+      gems: Value(gems),
+      tasksDone: Value(tasksDone),
+      habitsLogged: Value(habitsLogged),
+      focusSessions: Value(focusSessions),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory StatSnapshot.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StatSnapshot(
+      id: serializer.fromJson<String>(json['id']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      dirty: serializer.fromJson<bool>(json['dirty']),
+      dateKey: serializer.fromJson<String>(json['dateKey']),
+      totalXp: serializer.fromJson<int>(json['totalXp']),
+      lifetimeXp: serializer.fromJson<int>(json['lifetimeXp']),
+      level: serializer.fromJson<int>(json['level']),
+      gold: serializer.fromJson<int>(json['gold']),
+      gems: serializer.fromJson<int>(json['gems']),
+      tasksDone: serializer.fromJson<int>(json['tasksDone']),
+      habitsLogged: serializer.fromJson<int>(json['habitsLogged']),
+      focusSessions: serializer.fromJson<int>(json['focusSessions']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'dirty': serializer.toJson<bool>(dirty),
+      'dateKey': serializer.toJson<String>(dateKey),
+      'totalXp': serializer.toJson<int>(totalXp),
+      'lifetimeXp': serializer.toJson<int>(lifetimeXp),
+      'level': serializer.toJson<int>(level),
+      'gold': serializer.toJson<int>(gold),
+      'gems': serializer.toJson<int>(gems),
+      'tasksDone': serializer.toJson<int>(tasksDone),
+      'habitsLogged': serializer.toJson<int>(habitsLogged),
+      'focusSessions': serializer.toJson<int>(focusSessions),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  StatSnapshot copyWith({
+    String? id,
+    DateTime? updatedAt,
+    bool? isDeleted,
+    bool? dirty,
+    String? dateKey,
+    int? totalXp,
+    int? lifetimeXp,
+    int? level,
+    int? gold,
+    int? gems,
+    int? tasksDone,
+    int? habitsLogged,
+    int? focusSessions,
+    DateTime? createdAt,
+  }) => StatSnapshot(
+    id: id ?? this.id,
+    updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
+    dirty: dirty ?? this.dirty,
+    dateKey: dateKey ?? this.dateKey,
+    totalXp: totalXp ?? this.totalXp,
+    lifetimeXp: lifetimeXp ?? this.lifetimeXp,
+    level: level ?? this.level,
+    gold: gold ?? this.gold,
+    gems: gems ?? this.gems,
+    tasksDone: tasksDone ?? this.tasksDone,
+    habitsLogged: habitsLogged ?? this.habitsLogged,
+    focusSessions: focusSessions ?? this.focusSessions,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  StatSnapshot copyWithCompanion(StatSnapshotsCompanion data) {
+    return StatSnapshot(
+      id: data.id.present ? data.id.value : this.id,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      dirty: data.dirty.present ? data.dirty.value : this.dirty,
+      dateKey: data.dateKey.present ? data.dateKey.value : this.dateKey,
+      totalXp: data.totalXp.present ? data.totalXp.value : this.totalXp,
+      lifetimeXp: data.lifetimeXp.present
+          ? data.lifetimeXp.value
+          : this.lifetimeXp,
+      level: data.level.present ? data.level.value : this.level,
+      gold: data.gold.present ? data.gold.value : this.gold,
+      gems: data.gems.present ? data.gems.value : this.gems,
+      tasksDone: data.tasksDone.present ? data.tasksDone.value : this.tasksDone,
+      habitsLogged: data.habitsLogged.present
+          ? data.habitsLogged.value
+          : this.habitsLogged,
+      focusSessions: data.focusSessions.present
+          ? data.focusSessions.value
+          : this.focusSessions,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StatSnapshot(')
+          ..write('id: $id, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('dateKey: $dateKey, ')
+          ..write('totalXp: $totalXp, ')
+          ..write('lifetimeXp: $lifetimeXp, ')
+          ..write('level: $level, ')
+          ..write('gold: $gold, ')
+          ..write('gems: $gems, ')
+          ..write('tasksDone: $tasksDone, ')
+          ..write('habitsLogged: $habitsLogged, ')
+          ..write('focusSessions: $focusSessions, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    updatedAt,
+    isDeleted,
+    dirty,
+    dateKey,
+    totalXp,
+    lifetimeXp,
+    level,
+    gold,
+    gems,
+    tasksDone,
+    habitsLogged,
+    focusSessions,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StatSnapshot &&
+          other.id == this.id &&
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted &&
+          other.dirty == this.dirty &&
+          other.dateKey == this.dateKey &&
+          other.totalXp == this.totalXp &&
+          other.lifetimeXp == this.lifetimeXp &&
+          other.level == this.level &&
+          other.gold == this.gold &&
+          other.gems == this.gems &&
+          other.tasksDone == this.tasksDone &&
+          other.habitsLogged == this.habitsLogged &&
+          other.focusSessions == this.focusSessions &&
+          other.createdAt == this.createdAt);
+}
+
+class StatSnapshotsCompanion extends UpdateCompanion<StatSnapshot> {
+  final Value<String> id;
+  final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
+  final Value<bool> dirty;
+  final Value<String> dateKey;
+  final Value<int> totalXp;
+  final Value<int> lifetimeXp;
+  final Value<int> level;
+  final Value<int> gold;
+  final Value<int> gems;
+  final Value<int> tasksDone;
+  final Value<int> habitsLogged;
+  final Value<int> focusSessions;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const StatSnapshotsCompanion({
+    this.id = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    this.dateKey = const Value.absent(),
+    this.totalXp = const Value.absent(),
+    this.lifetimeXp = const Value.absent(),
+    this.level = const Value.absent(),
+    this.gold = const Value.absent(),
+    this.gems = const Value.absent(),
+    this.tasksDone = const Value.absent(),
+    this.habitsLogged = const Value.absent(),
+    this.focusSessions = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StatSnapshotsCompanion.insert({
+    required String id,
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    required String dateKey,
+    this.totalXp = const Value.absent(),
+    this.lifetimeXp = const Value.absent(),
+    this.level = const Value.absent(),
+    this.gold = const Value.absent(),
+    this.gems = const Value.absent(),
+    this.tasksDone = const Value.absent(),
+    this.habitsLogged = const Value.absent(),
+    this.focusSessions = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       dateKey = Value(dateKey);
+  static Insertable<StatSnapshot> custom({
+    Expression<String>? id,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
+    Expression<bool>? dirty,
+    Expression<String>? dateKey,
+    Expression<int>? totalXp,
+    Expression<int>? lifetimeXp,
+    Expression<int>? level,
+    Expression<int>? gold,
+    Expression<int>? gems,
+    Expression<int>? tasksDone,
+    Expression<int>? habitsLogged,
+    Expression<int>? focusSessions,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (dirty != null) 'dirty': dirty,
+      if (dateKey != null) 'date_key': dateKey,
+      if (totalXp != null) 'total_xp': totalXp,
+      if (lifetimeXp != null) 'lifetime_xp': lifetimeXp,
+      if (level != null) 'level': level,
+      if (gold != null) 'gold': gold,
+      if (gems != null) 'gems': gems,
+      if (tasksDone != null) 'tasks_done': tasksDone,
+      if (habitsLogged != null) 'habits_logged': habitsLogged,
+      if (focusSessions != null) 'focus_sessions': focusSessions,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StatSnapshotsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
+    Value<bool>? dirty,
+    Value<String>? dateKey,
+    Value<int>? totalXp,
+    Value<int>? lifetimeXp,
+    Value<int>? level,
+    Value<int>? gold,
+    Value<int>? gems,
+    Value<int>? tasksDone,
+    Value<int>? habitsLogged,
+    Value<int>? focusSessions,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return StatSnapshotsCompanion(
+      id: id ?? this.id,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      dirty: dirty ?? this.dirty,
+      dateKey: dateKey ?? this.dateKey,
+      totalXp: totalXp ?? this.totalXp,
+      lifetimeXp: lifetimeXp ?? this.lifetimeXp,
+      level: level ?? this.level,
+      gold: gold ?? this.gold,
+      gems: gems ?? this.gems,
+      tasksDone: tasksDone ?? this.tasksDone,
+      habitsLogged: habitsLogged ?? this.habitsLogged,
+      focusSessions: focusSessions ?? this.focusSessions,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (dirty.present) {
+      map['dirty'] = Variable<bool>(dirty.value);
+    }
+    if (dateKey.present) {
+      map['date_key'] = Variable<String>(dateKey.value);
+    }
+    if (totalXp.present) {
+      map['total_xp'] = Variable<int>(totalXp.value);
+    }
+    if (lifetimeXp.present) {
+      map['lifetime_xp'] = Variable<int>(lifetimeXp.value);
+    }
+    if (level.present) {
+      map['level'] = Variable<int>(level.value);
+    }
+    if (gold.present) {
+      map['gold'] = Variable<int>(gold.value);
+    }
+    if (gems.present) {
+      map['gems'] = Variable<int>(gems.value);
+    }
+    if (tasksDone.present) {
+      map['tasks_done'] = Variable<int>(tasksDone.value);
+    }
+    if (habitsLogged.present) {
+      map['habits_logged'] = Variable<int>(habitsLogged.value);
+    }
+    if (focusSessions.present) {
+      map['focus_sessions'] = Variable<int>(focusSessions.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StatSnapshotsCompanion(')
+          ..write('id: $id, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('dateKey: $dateKey, ')
+          ..write('totalXp: $totalXp, ')
+          ..write('lifetimeXp: $lifetimeXp, ')
+          ..write('level: $level, ')
+          ..write('gold: $gold, ')
+          ..write('gems: $gems, ')
+          ..write('tasksDone: $tasksDone, ')
+          ..write('habitsLogged: $habitsLogged, ')
+          ..write('focusSessions: $focusSessions, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SeasonsTable extends Seasons with TableInfo<$SeasonsTable, Season> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SeasonsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _dirtyMeta = const VerificationMeta('dirty');
+  @override
+  late final GeneratedColumn<bool> dirty = GeneratedColumn<bool>(
+    'dirty',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("dirty" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _yearMeta = const VerificationMeta('year');
+  @override
+  late final GeneratedColumn<int> year = GeneratedColumn<int>(
+    'year',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _monthMeta = const VerificationMeta('month');
+  @override
+  late final GeneratedColumn<int> month = GeneratedColumn<int>(
+    'month',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _xpEarnedMeta = const VerificationMeta(
+    'xpEarned',
+  );
+  @override
+  late final GeneratedColumn<int> xpEarned = GeneratedColumn<int>(
+    'xp_earned',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<int> level = GeneratedColumn<int>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _rankMeta = const VerificationMeta('rank');
+  @override
+  late final GeneratedColumn<String> rank = GeneratedColumn<String>(
+    'rank',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _tasksCompletedMeta = const VerificationMeta(
+    'tasksCompleted',
+  );
+  @override
+  late final GeneratedColumn<int> tasksCompleted = GeneratedColumn<int>(
+    'tasks_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _habitsCompletedMeta = const VerificationMeta(
+    'habitsCompleted',
+  );
+  @override
+  late final GeneratedColumn<int> habitsCompleted = GeneratedColumn<int>(
+    'habits_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _bestStreakMeta = const VerificationMeta(
+    'bestStreak',
+  );
+  @override
+  late final GeneratedColumn<int> bestStreak = GeneratedColumn<int>(
+    'best_streak',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _topAxisNameMeta = const VerificationMeta(
+    'topAxisName',
+  );
+  @override
+  late final GeneratedColumn<String> topAxisName = GeneratedColumn<String>(
+    'top_axis_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _gemsAwardedMeta = const VerificationMeta(
+    'gemsAwarded',
+  );
+  @override
+  late final GeneratedColumn<int> gemsAwarded = GeneratedColumn<int>(
+    'gems_awarded',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _closedAtMeta = const VerificationMeta(
+    'closedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> closedAt = GeneratedColumn<DateTime>(
+    'closed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    updatedAt,
+    isDeleted,
+    dirty,
+    year,
+    month,
+    xpEarned,
+    level,
+    rank,
+    tasksCompleted,
+    habitsCompleted,
+    bestStreak,
+    topAxisName,
+    gemsAwarded,
+    closedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'seasons';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Season> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('dirty')) {
+      context.handle(
+        _dirtyMeta,
+        dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta),
+      );
+    }
+    if (data.containsKey('year')) {
+      context.handle(
+        _yearMeta,
+        year.isAcceptableOrUnknown(data['year']!, _yearMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_yearMeta);
+    }
+    if (data.containsKey('month')) {
+      context.handle(
+        _monthMeta,
+        month.isAcceptableOrUnknown(data['month']!, _monthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_monthMeta);
+    }
+    if (data.containsKey('xp_earned')) {
+      context.handle(
+        _xpEarnedMeta,
+        xpEarned.isAcceptableOrUnknown(data['xp_earned']!, _xpEarnedMeta),
+      );
+    }
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    }
+    if (data.containsKey('rank')) {
+      context.handle(
+        _rankMeta,
+        rank.isAcceptableOrUnknown(data['rank']!, _rankMeta),
+      );
+    }
+    if (data.containsKey('tasks_completed')) {
+      context.handle(
+        _tasksCompletedMeta,
+        tasksCompleted.isAcceptableOrUnknown(
+          data['tasks_completed']!,
+          _tasksCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('habits_completed')) {
+      context.handle(
+        _habitsCompletedMeta,
+        habitsCompleted.isAcceptableOrUnknown(
+          data['habits_completed']!,
+          _habitsCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('best_streak')) {
+      context.handle(
+        _bestStreakMeta,
+        bestStreak.isAcceptableOrUnknown(data['best_streak']!, _bestStreakMeta),
+      );
+    }
+    if (data.containsKey('top_axis_name')) {
+      context.handle(
+        _topAxisNameMeta,
+        topAxisName.isAcceptableOrUnknown(
+          data['top_axis_name']!,
+          _topAxisNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('gems_awarded')) {
+      context.handle(
+        _gemsAwardedMeta,
+        gemsAwarded.isAcceptableOrUnknown(
+          data['gems_awarded']!,
+          _gemsAwardedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('closed_at')) {
+      context.handle(
+        _closedAtMeta,
+        closedAt.isAcceptableOrUnknown(data['closed_at']!, _closedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Season map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Season(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      dirty: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}dirty'],
+      )!,
+      year: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}year'],
+      )!,
+      month: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}month'],
+      )!,
+      xpEarned: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}xp_earned'],
+      )!,
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}level'],
+      )!,
+      rank: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rank'],
+      )!,
+      tasksCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}tasks_completed'],
+      )!,
+      habitsCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}habits_completed'],
+      )!,
+      bestStreak: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}best_streak'],
+      )!,
+      topAxisName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}top_axis_name'],
+      ),
+      gemsAwarded: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}gems_awarded'],
+      )!,
+      closedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}closed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SeasonsTable createAlias(String alias) {
+    return $SeasonsTable(attachedDatabase, alias);
+  }
+}
+
+class Season extends DataClass implements Insertable<Season> {
+  final String id;
+  final DateTime updatedAt;
+  final bool isDeleted;
+  final bool dirty;
+  final int year;
+  final int month;
+  final int xpEarned;
+  final int level;
+  final String rank;
+  final int tasksCompleted;
+  final int habitsCompleted;
+  final int bestStreak;
+  final String? topAxisName;
+  final int gemsAwarded;
+  final DateTime closedAt;
+  const Season({
+    required this.id,
+    required this.updatedAt,
+    required this.isDeleted,
+    required this.dirty,
+    required this.year,
+    required this.month,
+    required this.xpEarned,
+    required this.level,
+    required this.rank,
+    required this.tasksCompleted,
+    required this.habitsCompleted,
+    required this.bestStreak,
+    this.topAxisName,
+    required this.gemsAwarded,
+    required this.closedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['dirty'] = Variable<bool>(dirty);
+    map['year'] = Variable<int>(year);
+    map['month'] = Variable<int>(month);
+    map['xp_earned'] = Variable<int>(xpEarned);
+    map['level'] = Variable<int>(level);
+    map['rank'] = Variable<String>(rank);
+    map['tasks_completed'] = Variable<int>(tasksCompleted);
+    map['habits_completed'] = Variable<int>(habitsCompleted);
+    map['best_streak'] = Variable<int>(bestStreak);
+    if (!nullToAbsent || topAxisName != null) {
+      map['top_axis_name'] = Variable<String>(topAxisName);
+    }
+    map['gems_awarded'] = Variable<int>(gemsAwarded);
+    map['closed_at'] = Variable<DateTime>(closedAt);
+    return map;
+  }
+
+  SeasonsCompanion toCompanion(bool nullToAbsent) {
+    return SeasonsCompanion(
+      id: Value(id),
+      updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
+      dirty: Value(dirty),
+      year: Value(year),
+      month: Value(month),
+      xpEarned: Value(xpEarned),
+      level: Value(level),
+      rank: Value(rank),
+      tasksCompleted: Value(tasksCompleted),
+      habitsCompleted: Value(habitsCompleted),
+      bestStreak: Value(bestStreak),
+      topAxisName: topAxisName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(topAxisName),
+      gemsAwarded: Value(gemsAwarded),
+      closedAt: Value(closedAt),
+    );
+  }
+
+  factory Season.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Season(
+      id: serializer.fromJson<String>(json['id']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      dirty: serializer.fromJson<bool>(json['dirty']),
+      year: serializer.fromJson<int>(json['year']),
+      month: serializer.fromJson<int>(json['month']),
+      xpEarned: serializer.fromJson<int>(json['xpEarned']),
+      level: serializer.fromJson<int>(json['level']),
+      rank: serializer.fromJson<String>(json['rank']),
+      tasksCompleted: serializer.fromJson<int>(json['tasksCompleted']),
+      habitsCompleted: serializer.fromJson<int>(json['habitsCompleted']),
+      bestStreak: serializer.fromJson<int>(json['bestStreak']),
+      topAxisName: serializer.fromJson<String?>(json['topAxisName']),
+      gemsAwarded: serializer.fromJson<int>(json['gemsAwarded']),
+      closedAt: serializer.fromJson<DateTime>(json['closedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'dirty': serializer.toJson<bool>(dirty),
+      'year': serializer.toJson<int>(year),
+      'month': serializer.toJson<int>(month),
+      'xpEarned': serializer.toJson<int>(xpEarned),
+      'level': serializer.toJson<int>(level),
+      'rank': serializer.toJson<String>(rank),
+      'tasksCompleted': serializer.toJson<int>(tasksCompleted),
+      'habitsCompleted': serializer.toJson<int>(habitsCompleted),
+      'bestStreak': serializer.toJson<int>(bestStreak),
+      'topAxisName': serializer.toJson<String?>(topAxisName),
+      'gemsAwarded': serializer.toJson<int>(gemsAwarded),
+      'closedAt': serializer.toJson<DateTime>(closedAt),
+    };
+  }
+
+  Season copyWith({
+    String? id,
+    DateTime? updatedAt,
+    bool? isDeleted,
+    bool? dirty,
+    int? year,
+    int? month,
+    int? xpEarned,
+    int? level,
+    String? rank,
+    int? tasksCompleted,
+    int? habitsCompleted,
+    int? bestStreak,
+    Value<String?> topAxisName = const Value.absent(),
+    int? gemsAwarded,
+    DateTime? closedAt,
+  }) => Season(
+    id: id ?? this.id,
+    updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
+    dirty: dirty ?? this.dirty,
+    year: year ?? this.year,
+    month: month ?? this.month,
+    xpEarned: xpEarned ?? this.xpEarned,
+    level: level ?? this.level,
+    rank: rank ?? this.rank,
+    tasksCompleted: tasksCompleted ?? this.tasksCompleted,
+    habitsCompleted: habitsCompleted ?? this.habitsCompleted,
+    bestStreak: bestStreak ?? this.bestStreak,
+    topAxisName: topAxisName.present ? topAxisName.value : this.topAxisName,
+    gemsAwarded: gemsAwarded ?? this.gemsAwarded,
+    closedAt: closedAt ?? this.closedAt,
+  );
+  Season copyWithCompanion(SeasonsCompanion data) {
+    return Season(
+      id: data.id.present ? data.id.value : this.id,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      dirty: data.dirty.present ? data.dirty.value : this.dirty,
+      year: data.year.present ? data.year.value : this.year,
+      month: data.month.present ? data.month.value : this.month,
+      xpEarned: data.xpEarned.present ? data.xpEarned.value : this.xpEarned,
+      level: data.level.present ? data.level.value : this.level,
+      rank: data.rank.present ? data.rank.value : this.rank,
+      tasksCompleted: data.tasksCompleted.present
+          ? data.tasksCompleted.value
+          : this.tasksCompleted,
+      habitsCompleted: data.habitsCompleted.present
+          ? data.habitsCompleted.value
+          : this.habitsCompleted,
+      bestStreak: data.bestStreak.present
+          ? data.bestStreak.value
+          : this.bestStreak,
+      topAxisName: data.topAxisName.present
+          ? data.topAxisName.value
+          : this.topAxisName,
+      gemsAwarded: data.gemsAwarded.present
+          ? data.gemsAwarded.value
+          : this.gemsAwarded,
+      closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Season(')
+          ..write('id: $id, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('year: $year, ')
+          ..write('month: $month, ')
+          ..write('xpEarned: $xpEarned, ')
+          ..write('level: $level, ')
+          ..write('rank: $rank, ')
+          ..write('tasksCompleted: $tasksCompleted, ')
+          ..write('habitsCompleted: $habitsCompleted, ')
+          ..write('bestStreak: $bestStreak, ')
+          ..write('topAxisName: $topAxisName, ')
+          ..write('gemsAwarded: $gemsAwarded, ')
+          ..write('closedAt: $closedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    updatedAt,
+    isDeleted,
+    dirty,
+    year,
+    month,
+    xpEarned,
+    level,
+    rank,
+    tasksCompleted,
+    habitsCompleted,
+    bestStreak,
+    topAxisName,
+    gemsAwarded,
+    closedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Season &&
+          other.id == this.id &&
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted &&
+          other.dirty == this.dirty &&
+          other.year == this.year &&
+          other.month == this.month &&
+          other.xpEarned == this.xpEarned &&
+          other.level == this.level &&
+          other.rank == this.rank &&
+          other.tasksCompleted == this.tasksCompleted &&
+          other.habitsCompleted == this.habitsCompleted &&
+          other.bestStreak == this.bestStreak &&
+          other.topAxisName == this.topAxisName &&
+          other.gemsAwarded == this.gemsAwarded &&
+          other.closedAt == this.closedAt);
+}
+
+class SeasonsCompanion extends UpdateCompanion<Season> {
+  final Value<String> id;
+  final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
+  final Value<bool> dirty;
+  final Value<int> year;
+  final Value<int> month;
+  final Value<int> xpEarned;
+  final Value<int> level;
+  final Value<String> rank;
+  final Value<int> tasksCompleted;
+  final Value<int> habitsCompleted;
+  final Value<int> bestStreak;
+  final Value<String?> topAxisName;
+  final Value<int> gemsAwarded;
+  final Value<DateTime> closedAt;
+  final Value<int> rowid;
+  const SeasonsCompanion({
+    this.id = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    this.year = const Value.absent(),
+    this.month = const Value.absent(),
+    this.xpEarned = const Value.absent(),
+    this.level = const Value.absent(),
+    this.rank = const Value.absent(),
+    this.tasksCompleted = const Value.absent(),
+    this.habitsCompleted = const Value.absent(),
+    this.bestStreak = const Value.absent(),
+    this.topAxisName = const Value.absent(),
+    this.gemsAwarded = const Value.absent(),
+    this.closedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SeasonsCompanion.insert({
+    required String id,
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    required int year,
+    required int month,
+    this.xpEarned = const Value.absent(),
+    this.level = const Value.absent(),
+    this.rank = const Value.absent(),
+    this.tasksCompleted = const Value.absent(),
+    this.habitsCompleted = const Value.absent(),
+    this.bestStreak = const Value.absent(),
+    this.topAxisName = const Value.absent(),
+    this.gemsAwarded = const Value.absent(),
+    this.closedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       year = Value(year),
+       month = Value(month);
+  static Insertable<Season> custom({
+    Expression<String>? id,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
+    Expression<bool>? dirty,
+    Expression<int>? year,
+    Expression<int>? month,
+    Expression<int>? xpEarned,
+    Expression<int>? level,
+    Expression<String>? rank,
+    Expression<int>? tasksCompleted,
+    Expression<int>? habitsCompleted,
+    Expression<int>? bestStreak,
+    Expression<String>? topAxisName,
+    Expression<int>? gemsAwarded,
+    Expression<DateTime>? closedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (dirty != null) 'dirty': dirty,
+      if (year != null) 'year': year,
+      if (month != null) 'month': month,
+      if (xpEarned != null) 'xp_earned': xpEarned,
+      if (level != null) 'level': level,
+      if (rank != null) 'rank': rank,
+      if (tasksCompleted != null) 'tasks_completed': tasksCompleted,
+      if (habitsCompleted != null) 'habits_completed': habitsCompleted,
+      if (bestStreak != null) 'best_streak': bestStreak,
+      if (topAxisName != null) 'top_axis_name': topAxisName,
+      if (gemsAwarded != null) 'gems_awarded': gemsAwarded,
+      if (closedAt != null) 'closed_at': closedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SeasonsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
+    Value<bool>? dirty,
+    Value<int>? year,
+    Value<int>? month,
+    Value<int>? xpEarned,
+    Value<int>? level,
+    Value<String>? rank,
+    Value<int>? tasksCompleted,
+    Value<int>? habitsCompleted,
+    Value<int>? bestStreak,
+    Value<String?>? topAxisName,
+    Value<int>? gemsAwarded,
+    Value<DateTime>? closedAt,
+    Value<int>? rowid,
+  }) {
+    return SeasonsCompanion(
+      id: id ?? this.id,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      dirty: dirty ?? this.dirty,
+      year: year ?? this.year,
+      month: month ?? this.month,
+      xpEarned: xpEarned ?? this.xpEarned,
+      level: level ?? this.level,
+      rank: rank ?? this.rank,
+      tasksCompleted: tasksCompleted ?? this.tasksCompleted,
+      habitsCompleted: habitsCompleted ?? this.habitsCompleted,
+      bestStreak: bestStreak ?? this.bestStreak,
+      topAxisName: topAxisName ?? this.topAxisName,
+      gemsAwarded: gemsAwarded ?? this.gemsAwarded,
+      closedAt: closedAt ?? this.closedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (dirty.present) {
+      map['dirty'] = Variable<bool>(dirty.value);
+    }
+    if (year.present) {
+      map['year'] = Variable<int>(year.value);
+    }
+    if (month.present) {
+      map['month'] = Variable<int>(month.value);
+    }
+    if (xpEarned.present) {
+      map['xp_earned'] = Variable<int>(xpEarned.value);
+    }
+    if (level.present) {
+      map['level'] = Variable<int>(level.value);
+    }
+    if (rank.present) {
+      map['rank'] = Variable<String>(rank.value);
+    }
+    if (tasksCompleted.present) {
+      map['tasks_completed'] = Variable<int>(tasksCompleted.value);
+    }
+    if (habitsCompleted.present) {
+      map['habits_completed'] = Variable<int>(habitsCompleted.value);
+    }
+    if (bestStreak.present) {
+      map['best_streak'] = Variable<int>(bestStreak.value);
+    }
+    if (topAxisName.present) {
+      map['top_axis_name'] = Variable<String>(topAxisName.value);
+    }
+    if (gemsAwarded.present) {
+      map['gems_awarded'] = Variable<int>(gemsAwarded.value);
+    }
+    if (closedAt.present) {
+      map['closed_at'] = Variable<DateTime>(closedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SeasonsCompanion(')
+          ..write('id: $id, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('year: $year, ')
+          ..write('month: $month, ')
+          ..write('xpEarned: $xpEarned, ')
+          ..write('level: $level, ')
+          ..write('rank: $rank, ')
+          ..write('tasksCompleted: $tasksCompleted, ')
+          ..write('habitsCompleted: $habitsCompleted, ')
+          ..write('bestStreak: $bestStreak, ')
+          ..write('topAxisName: $topAxisName, ')
+          ..write('gemsAwarded: $gemsAwarded, ')
+          ..write('closedAt: $closedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7893,6 +9716,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $InventoryItemsTable inventoryItems = $InventoryItemsTable(this);
   late final $SleepLogsTable sleepLogs = $SleepLogsTable(this);
   late final $CodexEntriesTable codexEntries = $CodexEntriesTable(this);
+  late final $StatSnapshotsTable statSnapshots = $StatSnapshotsTable(this);
+  late final $SeasonsTable seasons = $SeasonsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7911,6 +9736,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     inventoryItems,
     sleepLogs,
     codexEntries,
+    statSnapshots,
+    seasons,
   ];
 }
 
@@ -10025,6 +11852,10 @@ typedef $$ProfilesTableCreateCompanionBuilder =
       Value<bool> dirty,
       Value<String> displayName,
       Value<int> totalXp,
+      Value<int> lifetimeXp,
+      Value<int> prestige,
+      Value<int> seasonYear,
+      Value<int> seasonMonth,
       Value<int> gold,
       Value<int> gems,
       Value<int> rowid,
@@ -10037,6 +11868,10 @@ typedef $$ProfilesTableUpdateCompanionBuilder =
       Value<bool> dirty,
       Value<String> displayName,
       Value<int> totalXp,
+      Value<int> lifetimeXp,
+      Value<int> prestige,
+      Value<int> seasonYear,
+      Value<int> seasonMonth,
       Value<int> gold,
       Value<int> gems,
       Value<int> rowid,
@@ -10078,6 +11913,26 @@ class $$ProfilesTableFilterComposer
 
   ColumnFilters<int> get totalXp => $composableBuilder(
     column: $table.totalXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lifetimeXp => $composableBuilder(
+    column: $table.lifetimeXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get prestige => $composableBuilder(
+    column: $table.prestige,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get seasonYear => $composableBuilder(
+    column: $table.seasonYear,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get seasonMonth => $composableBuilder(
+    column: $table.seasonMonth,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -10131,6 +11986,26 @@ class $$ProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get lifetimeXp => $composableBuilder(
+    column: $table.lifetimeXp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get prestige => $composableBuilder(
+    column: $table.prestige,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get seasonYear => $composableBuilder(
+    column: $table.seasonYear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get seasonMonth => $composableBuilder(
+    column: $table.seasonMonth,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get gold => $composableBuilder(
     column: $table.gold,
     builder: (column) => ColumnOrderings(column),
@@ -10170,6 +12045,24 @@ class $$ProfilesTableAnnotationComposer
 
   GeneratedColumn<int> get totalXp =>
       $composableBuilder(column: $table.totalXp, builder: (column) => column);
+
+  GeneratedColumn<int> get lifetimeXp => $composableBuilder(
+    column: $table.lifetimeXp,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get prestige =>
+      $composableBuilder(column: $table.prestige, builder: (column) => column);
+
+  GeneratedColumn<int> get seasonYear => $composableBuilder(
+    column: $table.seasonYear,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get seasonMonth => $composableBuilder(
+    column: $table.seasonMonth,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get gold =>
       $composableBuilder(column: $table.gold, builder: (column) => column);
@@ -10212,6 +12105,10 @@ class $$ProfilesTableTableManager
                 Value<bool> dirty = const Value.absent(),
                 Value<String> displayName = const Value.absent(),
                 Value<int> totalXp = const Value.absent(),
+                Value<int> lifetimeXp = const Value.absent(),
+                Value<int> prestige = const Value.absent(),
+                Value<int> seasonYear = const Value.absent(),
+                Value<int> seasonMonth = const Value.absent(),
                 Value<int> gold = const Value.absent(),
                 Value<int> gems = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10222,6 +12119,10 @@ class $$ProfilesTableTableManager
                 dirty: dirty,
                 displayName: displayName,
                 totalXp: totalXp,
+                lifetimeXp: lifetimeXp,
+                prestige: prestige,
+                seasonYear: seasonYear,
+                seasonMonth: seasonMonth,
                 gold: gold,
                 gems: gems,
                 rowid: rowid,
@@ -10234,6 +12135,10 @@ class $$ProfilesTableTableManager
                 Value<bool> dirty = const Value.absent(),
                 Value<String> displayName = const Value.absent(),
                 Value<int> totalXp = const Value.absent(),
+                Value<int> lifetimeXp = const Value.absent(),
+                Value<int> prestige = const Value.absent(),
+                Value<int> seasonYear = const Value.absent(),
+                Value<int> seasonMonth = const Value.absent(),
                 Value<int> gold = const Value.absent(),
                 Value<int> gems = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -10244,6 +12149,10 @@ class $$ProfilesTableTableManager
                 dirty: dirty,
                 displayName: displayName,
                 totalXp: totalXp,
+                lifetimeXp: lifetimeXp,
+                prestige: prestige,
+                seasonYear: seasonYear,
+                seasonMonth: seasonMonth,
                 gold: gold,
                 gems: gems,
                 rowid: rowid,
@@ -12836,6 +14745,777 @@ typedef $$CodexEntriesTableProcessedTableManager =
       CodexEntry,
       PrefetchHooks Function()
     >;
+typedef $$StatSnapshotsTableCreateCompanionBuilder =
+    StatSnapshotsCompanion Function({
+      required String id,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> dirty,
+      required String dateKey,
+      Value<int> totalXp,
+      Value<int> lifetimeXp,
+      Value<int> level,
+      Value<int> gold,
+      Value<int> gems,
+      Value<int> tasksDone,
+      Value<int> habitsLogged,
+      Value<int> focusSessions,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$StatSnapshotsTableUpdateCompanionBuilder =
+    StatSnapshotsCompanion Function({
+      Value<String> id,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> dirty,
+      Value<String> dateKey,
+      Value<int> totalXp,
+      Value<int> lifetimeXp,
+      Value<int> level,
+      Value<int> gold,
+      Value<int> gems,
+      Value<int> tasksDone,
+      Value<int> habitsLogged,
+      Value<int> focusSessions,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$StatSnapshotsTableFilterComposer
+    extends Composer<_$AppDatabase, $StatSnapshotsTable> {
+  $$StatSnapshotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dateKey => $composableBuilder(
+    column: $table.dateKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalXp => $composableBuilder(
+    column: $table.totalXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lifetimeXp => $composableBuilder(
+    column: $table.lifetimeXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gold => $composableBuilder(
+    column: $table.gold,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gems => $composableBuilder(
+    column: $table.gems,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tasksDone => $composableBuilder(
+    column: $table.tasksDone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get habitsLogged => $composableBuilder(
+    column: $table.habitsLogged,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get focusSessions => $composableBuilder(
+    column: $table.focusSessions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StatSnapshotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StatSnapshotsTable> {
+  $$StatSnapshotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dateKey => $composableBuilder(
+    column: $table.dateKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalXp => $composableBuilder(
+    column: $table.totalXp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lifetimeXp => $composableBuilder(
+    column: $table.lifetimeXp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gold => $composableBuilder(
+    column: $table.gold,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gems => $composableBuilder(
+    column: $table.gems,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tasksDone => $composableBuilder(
+    column: $table.tasksDone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get habitsLogged => $composableBuilder(
+    column: $table.habitsLogged,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get focusSessions => $composableBuilder(
+    column: $table.focusSessions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StatSnapshotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StatSnapshotsTable> {
+  $$StatSnapshotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get dirty =>
+      $composableBuilder(column: $table.dirty, builder: (column) => column);
+
+  GeneratedColumn<String> get dateKey =>
+      $composableBuilder(column: $table.dateKey, builder: (column) => column);
+
+  GeneratedColumn<int> get totalXp =>
+      $composableBuilder(column: $table.totalXp, builder: (column) => column);
+
+  GeneratedColumn<int> get lifetimeXp => $composableBuilder(
+    column: $table.lifetimeXp,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<int> get gold =>
+      $composableBuilder(column: $table.gold, builder: (column) => column);
+
+  GeneratedColumn<int> get gems =>
+      $composableBuilder(column: $table.gems, builder: (column) => column);
+
+  GeneratedColumn<int> get tasksDone =>
+      $composableBuilder(column: $table.tasksDone, builder: (column) => column);
+
+  GeneratedColumn<int> get habitsLogged => $composableBuilder(
+    column: $table.habitsLogged,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get focusSessions => $composableBuilder(
+    column: $table.focusSessions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$StatSnapshotsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StatSnapshotsTable,
+          StatSnapshot,
+          $$StatSnapshotsTableFilterComposer,
+          $$StatSnapshotsTableOrderingComposer,
+          $$StatSnapshotsTableAnnotationComposer,
+          $$StatSnapshotsTableCreateCompanionBuilder,
+          $$StatSnapshotsTableUpdateCompanionBuilder,
+          (
+            StatSnapshot,
+            BaseReferences<_$AppDatabase, $StatSnapshotsTable, StatSnapshot>,
+          ),
+          StatSnapshot,
+          PrefetchHooks Function()
+        > {
+  $$StatSnapshotsTableTableManager(_$AppDatabase db, $StatSnapshotsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StatSnapshotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StatSnapshotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StatSnapshotsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                Value<String> dateKey = const Value.absent(),
+                Value<int> totalXp = const Value.absent(),
+                Value<int> lifetimeXp = const Value.absent(),
+                Value<int> level = const Value.absent(),
+                Value<int> gold = const Value.absent(),
+                Value<int> gems = const Value.absent(),
+                Value<int> tasksDone = const Value.absent(),
+                Value<int> habitsLogged = const Value.absent(),
+                Value<int> focusSessions = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StatSnapshotsCompanion(
+                id: id,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                dirty: dirty,
+                dateKey: dateKey,
+                totalXp: totalXp,
+                lifetimeXp: lifetimeXp,
+                level: level,
+                gold: gold,
+                gems: gems,
+                tasksDone: tasksDone,
+                habitsLogged: habitsLogged,
+                focusSessions: focusSessions,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                required String dateKey,
+                Value<int> totalXp = const Value.absent(),
+                Value<int> lifetimeXp = const Value.absent(),
+                Value<int> level = const Value.absent(),
+                Value<int> gold = const Value.absent(),
+                Value<int> gems = const Value.absent(),
+                Value<int> tasksDone = const Value.absent(),
+                Value<int> habitsLogged = const Value.absent(),
+                Value<int> focusSessions = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StatSnapshotsCompanion.insert(
+                id: id,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                dirty: dirty,
+                dateKey: dateKey,
+                totalXp: totalXp,
+                lifetimeXp: lifetimeXp,
+                level: level,
+                gold: gold,
+                gems: gems,
+                tasksDone: tasksDone,
+                habitsLogged: habitsLogged,
+                focusSessions: focusSessions,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StatSnapshotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StatSnapshotsTable,
+      StatSnapshot,
+      $$StatSnapshotsTableFilterComposer,
+      $$StatSnapshotsTableOrderingComposer,
+      $$StatSnapshotsTableAnnotationComposer,
+      $$StatSnapshotsTableCreateCompanionBuilder,
+      $$StatSnapshotsTableUpdateCompanionBuilder,
+      (
+        StatSnapshot,
+        BaseReferences<_$AppDatabase, $StatSnapshotsTable, StatSnapshot>,
+      ),
+      StatSnapshot,
+      PrefetchHooks Function()
+    >;
+typedef $$SeasonsTableCreateCompanionBuilder =
+    SeasonsCompanion Function({
+      required String id,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> dirty,
+      required int year,
+      required int month,
+      Value<int> xpEarned,
+      Value<int> level,
+      Value<String> rank,
+      Value<int> tasksCompleted,
+      Value<int> habitsCompleted,
+      Value<int> bestStreak,
+      Value<String?> topAxisName,
+      Value<int> gemsAwarded,
+      Value<DateTime> closedAt,
+      Value<int> rowid,
+    });
+typedef $$SeasonsTableUpdateCompanionBuilder =
+    SeasonsCompanion Function({
+      Value<String> id,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> dirty,
+      Value<int> year,
+      Value<int> month,
+      Value<int> xpEarned,
+      Value<int> level,
+      Value<String> rank,
+      Value<int> tasksCompleted,
+      Value<int> habitsCompleted,
+      Value<int> bestStreak,
+      Value<String?> topAxisName,
+      Value<int> gemsAwarded,
+      Value<DateTime> closedAt,
+      Value<int> rowid,
+    });
+
+class $$SeasonsTableFilterComposer
+    extends Composer<_$AppDatabase, $SeasonsTable> {
+  $$SeasonsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get year => $composableBuilder(
+    column: $table.year,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get month => $composableBuilder(
+    column: $table.month,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get xpEarned => $composableBuilder(
+    column: $table.xpEarned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rank => $composableBuilder(
+    column: $table.rank,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get tasksCompleted => $composableBuilder(
+    column: $table.tasksCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get habitsCompleted => $composableBuilder(
+    column: $table.habitsCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bestStreak => $composableBuilder(
+    column: $table.bestStreak,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get topAxisName => $composableBuilder(
+    column: $table.topAxisName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gemsAwarded => $composableBuilder(
+    column: $table.gemsAwarded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get closedAt => $composableBuilder(
+    column: $table.closedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SeasonsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SeasonsTable> {
+  $$SeasonsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get year => $composableBuilder(
+    column: $table.year,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get month => $composableBuilder(
+    column: $table.month,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get xpEarned => $composableBuilder(
+    column: $table.xpEarned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rank => $composableBuilder(
+    column: $table.rank,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get tasksCompleted => $composableBuilder(
+    column: $table.tasksCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get habitsCompleted => $composableBuilder(
+    column: $table.habitsCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bestStreak => $composableBuilder(
+    column: $table.bestStreak,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get topAxisName => $composableBuilder(
+    column: $table.topAxisName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gemsAwarded => $composableBuilder(
+    column: $table.gemsAwarded,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get closedAt => $composableBuilder(
+    column: $table.closedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SeasonsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SeasonsTable> {
+  $$SeasonsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get dirty =>
+      $composableBuilder(column: $table.dirty, builder: (column) => column);
+
+  GeneratedColumn<int> get year =>
+      $composableBuilder(column: $table.year, builder: (column) => column);
+
+  GeneratedColumn<int> get month =>
+      $composableBuilder(column: $table.month, builder: (column) => column);
+
+  GeneratedColumn<int> get xpEarned =>
+      $composableBuilder(column: $table.xpEarned, builder: (column) => column);
+
+  GeneratedColumn<int> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<String> get rank =>
+      $composableBuilder(column: $table.rank, builder: (column) => column);
+
+  GeneratedColumn<int> get tasksCompleted => $composableBuilder(
+    column: $table.tasksCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get habitsCompleted => $composableBuilder(
+    column: $table.habitsCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bestStreak => $composableBuilder(
+    column: $table.bestStreak,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get topAxisName => $composableBuilder(
+    column: $table.topAxisName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get gemsAwarded => $composableBuilder(
+    column: $table.gemsAwarded,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get closedAt =>
+      $composableBuilder(column: $table.closedAt, builder: (column) => column);
+}
+
+class $$SeasonsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SeasonsTable,
+          Season,
+          $$SeasonsTableFilterComposer,
+          $$SeasonsTableOrderingComposer,
+          $$SeasonsTableAnnotationComposer,
+          $$SeasonsTableCreateCompanionBuilder,
+          $$SeasonsTableUpdateCompanionBuilder,
+          (Season, BaseReferences<_$AppDatabase, $SeasonsTable, Season>),
+          Season,
+          PrefetchHooks Function()
+        > {
+  $$SeasonsTableTableManager(_$AppDatabase db, $SeasonsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SeasonsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SeasonsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SeasonsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                Value<int> year = const Value.absent(),
+                Value<int> month = const Value.absent(),
+                Value<int> xpEarned = const Value.absent(),
+                Value<int> level = const Value.absent(),
+                Value<String> rank = const Value.absent(),
+                Value<int> tasksCompleted = const Value.absent(),
+                Value<int> habitsCompleted = const Value.absent(),
+                Value<int> bestStreak = const Value.absent(),
+                Value<String?> topAxisName = const Value.absent(),
+                Value<int> gemsAwarded = const Value.absent(),
+                Value<DateTime> closedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SeasonsCompanion(
+                id: id,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                dirty: dirty,
+                year: year,
+                month: month,
+                xpEarned: xpEarned,
+                level: level,
+                rank: rank,
+                tasksCompleted: tasksCompleted,
+                habitsCompleted: habitsCompleted,
+                bestStreak: bestStreak,
+                topAxisName: topAxisName,
+                gemsAwarded: gemsAwarded,
+                closedAt: closedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                required int year,
+                required int month,
+                Value<int> xpEarned = const Value.absent(),
+                Value<int> level = const Value.absent(),
+                Value<String> rank = const Value.absent(),
+                Value<int> tasksCompleted = const Value.absent(),
+                Value<int> habitsCompleted = const Value.absent(),
+                Value<int> bestStreak = const Value.absent(),
+                Value<String?> topAxisName = const Value.absent(),
+                Value<int> gemsAwarded = const Value.absent(),
+                Value<DateTime> closedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SeasonsCompanion.insert(
+                id: id,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                dirty: dirty,
+                year: year,
+                month: month,
+                xpEarned: xpEarned,
+                level: level,
+                rank: rank,
+                tasksCompleted: tasksCompleted,
+                habitsCompleted: habitsCompleted,
+                bestStreak: bestStreak,
+                topAxisName: topAxisName,
+                gemsAwarded: gemsAwarded,
+                closedAt: closedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SeasonsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SeasonsTable,
+      Season,
+      $$SeasonsTableFilterComposer,
+      $$SeasonsTableOrderingComposer,
+      $$SeasonsTableAnnotationComposer,
+      $$SeasonsTableCreateCompanionBuilder,
+      $$SeasonsTableUpdateCompanionBuilder,
+      (Season, BaseReferences<_$AppDatabase, $SeasonsTable, Season>),
+      Season,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12866,4 +15546,8 @@ class $AppDatabaseManager {
       $$SleepLogsTableTableManager(_db, _db.sleepLogs);
   $$CodexEntriesTableTableManager get codexEntries =>
       $$CodexEntriesTableTableManager(_db, _db.codexEntries);
+  $$StatSnapshotsTableTableManager get statSnapshots =>
+      $$StatSnapshotsTableTableManager(_db, _db.statSnapshots);
+  $$SeasonsTableTableManager get seasons =>
+      $$SeasonsTableTableManager(_db, _db.seasons);
 }

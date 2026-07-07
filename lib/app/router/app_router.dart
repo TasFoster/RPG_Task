@@ -6,6 +6,7 @@ import '../../features/habits/presentation/habit_detail_screen.dart';
 import '../../features/skills/presentation/skills_screen.dart';
 import '../../features/skills/presentation/axes_manager_screen.dart';
 import '../../features/character/presentation/character_screen.dart';
+import '../../features/stats/presentation/stats_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/pomodoro/presentation/pomodoro_screen.dart';
 import '../../features/goals/presentation/goals_screen.dart';
@@ -36,6 +37,10 @@ GoRouter buildAppRouter({String initialLocation = '/tasks'}) => GoRouter(
     GoRoute(
       path: '/skills/manage',
       builder: (context, state) => const AxesManagerScreen(),
+    ),
+    GoRoute(
+      path: '/stats',
+      builder: (context, state) => const StatsScreen(),
     ),
     GoRoute(
       path: '/goals',

@@ -87,13 +87,63 @@ class HabitLogs extends Table with _SyncColumns {
   Set<Column> get primaryKey => {id};
 }
 
-/// Профиль игрока (одна строка). Уровень вычисляется из totalXp.
+/// Профиль игрока (одна строка).
+///
+/// Сезонная система: [totalXp] — опыт ТЕКУЩЕГО сезона (месяца), уровень героя
+/// считается из него и обнуляется при смене сезона. [lifetimeXp] — совокупный
+/// опыт за всё время (не сбрасывается; используется для достижений и статистики
+/// «всё время»). [prestige] — число завершённых сезонов. [seasonYear]/
+/// [seasonMonth] — сезон, которому принадлежит текущий [totalXp] (0 — ещё не
+/// инициализировано; выставляется при первом запуске).
 class Profiles extends Table with _SyncColumns {
   TextColumn get displayName =>
       text().withDefault(const Constant('Искатель приключений'))();
   IntColumn get totalXp => integer().withDefault(const Constant(0))();
+  IntColumn get lifetimeXp => integer().withDefault(const Constant(0))();
+  IntColumn get prestige => integer().withDefault(const Constant(0))();
+  IntColumn get seasonYear => integer().withDefault(const Constant(0))();
+  IntColumn get seasonMonth => integer().withDefault(const Constant(0))();
   IntColumn get gold => integer().withDefault(const Constant(0))();
   IntColumn get gems => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Ежедневный снимок показателей игрока (для графиков динамики).
+/// Пишется раз в сутки; при повторе за тот же день перезаписывается.
+class StatSnapshots extends Table with _SyncColumns {
+  TextColumn get dateKey => text()(); // 'YYYY-MM-DD' (локальная дата)
+  IntColumn get totalXp => integer().withDefault(const Constant(0))();
+  IntColumn get lifetimeXp => integer().withDefault(const Constant(0))();
+  IntColumn get level => integer().withDefault(const Constant(1))();
+  IntColumn get gold => integer().withDefault(const Constant(0))();
+  IntColumn get gems => integer().withDefault(const Constant(0))();
+  IntColumn get tasksDone => integer().withDefault(const Constant(0))(); // накопительно
+  IntColumn get habitsLogged =>
+      integer().withDefault(const Constant(0))(); // накопительно
+  IntColumn get focusSessions =>
+      integer().withDefault(const Constant(0))(); // накопительно
+  DateTimeColumn get createdAt =>
+      dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Архив завершённых сезонов («Зал славы»). Одна запись на закрытый месяц.
+class Seasons extends Table with _SyncColumns {
+  IntColumn get year => integer()();
+  IntColumn get month => integer()();
+  IntColumn get xpEarned => integer().withDefault(const Constant(0))();
+  IntColumn get level => integer().withDefault(const Constant(1))();
+  TextColumn get rank => text().withDefault(const Constant(''))();
+  IntColumn get tasksCompleted => integer().withDefault(const Constant(0))();
+  IntColumn get habitsCompleted => integer().withDefault(const Constant(0))();
+  IntColumn get bestStreak => integer().withDefault(const Constant(0))();
+  TextColumn get topAxisName => text().nullable()();
+  IntColumn get gemsAwarded => integer().withDefault(const Constant(0))();
+  DateTimeColumn get closedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {id};

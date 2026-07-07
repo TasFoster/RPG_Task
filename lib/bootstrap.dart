@@ -12,6 +12,7 @@ import 'features/onboarding/data/onboarding_service.dart';
 import 'features/tips/data/tips_push.dart';
 import 'features/tips/data/tips_service.dart';
 import 'features/tips/data/tips_settings.dart';
+import 'features/stats/data/stats_repository.dart';
 import 'features/widgets/home_widgets_service.dart';
 
 /// Инициализация приложения до запуска UI.
@@ -33,6 +34,9 @@ Future<void> bootstrap() async {
     // Перепланировать пуш-советы согласно сохранённым настройкам (утро/вечер).
     final tipsSettings = await TipsSettings.load();
     await applyTipPushSchedule(notifications, const TipsService(), tipsSettings);
+
+    // Ежедневный снимок показателей для графиков динамики.
+    await StatsRepository(db).recordDailySnapshot();
 
     // Обновить виджеты главного экрана (Android; на web — no-op).
     await updateHomeWidgets(db);

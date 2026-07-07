@@ -20,7 +20,9 @@ class AchievementService {
   Future<AchievementStats> gatherStats() async {
     final profile =
         await (db.select(db.profiles)).getSingleOrNull();
-    final totalXp = profile?.totalXp ?? 0;
+    // Достижения опираются на совокупный опыт (не на сезонный), чтобы месячный
+    // сброс уровня их не обнулял.
+    final lifetimeXp = profile?.lifetimeXp ?? 0;
 
     final tasksDone = (await (db.select(db.tasks)
               ..where((t) =>
@@ -50,8 +52,8 @@ class AchievementService {
         .length;
 
     return AchievementStats(
-      totalXp: totalXp,
-      level: engine.levelForXp(totalXp),
+      totalXp: lifetimeXp,
+      level: engine.levelForXp(lifetimeXp),
       tasksDone: tasksDone,
       habitBestStreak: bestStreak,
       bossesKilled: bossesKilled,

@@ -154,6 +154,15 @@ class CharacterScreen extends ConsumerWidget {
                       ),
                       const Divider(height: 1),
                       ListTile(
+                        leading: Icon(Icons.insights,
+                            color: theme.colorScheme.primary),
+                        title: const Text('Летопись героя'),
+                        subtitle: const Text('Статистика и динамика показателей'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/stats'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
                         leading: Icon(Icons.menu_book,
                             color: theme.colorScheme.primary),
                         title: const Text('Кодекс героя'),

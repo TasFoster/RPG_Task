@@ -178,7 +178,8 @@ class RewardService {
 
     await (db.update(db.profiles)..where((p) => p.id.equals(kProfileId))).write(
       ProfilesCompanion(
-        totalXp: Value(profile.totalXp + reward.xp),
+        totalXp: Value(profile.totalXp + reward.xp), // опыт текущего сезона
+        lifetimeXp: Value(profile.lifetimeXp + reward.xp), // совокупный опыт
         gold: Value(profile.gold + reward.gold),
         gems: Value(profile.gems + reward.gems),
         dirty: const Value(true),
@@ -224,6 +225,7 @@ class RewardService {
     await (db.update(db.profiles)..where((p) => p.id.equals(kProfileId))).write(
       ProfilesCompanion(
         totalXp: Value((profile.totalXp - xp).clamp(0, 1 << 62)),
+        lifetimeXp: Value((profile.lifetimeXp - xp).clamp(0, 1 << 62)),
         gold: Value((profile.gold - gold).clamp(0, 1 << 62)),
         gems: Value((profile.gems - gems).clamp(0, 1 << 62)),
         dirty: const Value(true),
