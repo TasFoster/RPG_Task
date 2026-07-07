@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -14,32 +15,86 @@ import 'features/onboarding/data/onboarding_service.dart';
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Данные локали для форматирования дат/времени (русский).
-  await initializeDateFormatting('ru');
+  try {
+    // Данные локали для форматирования дат/времени (русский).
+    await initializeDateFormatting('ru');
 
-  // Локальная БД (Drift) + начальные данные (профиль, стандартные оси).
-  final db = AppDatabase();
-  await seedDatabase(db);
+    // Локальная БД (Drift) + начальные данные (профиль, стандартные оси).
+    final db = AppDatabase();
+    await seedDatabase(db);
 
-  // Уведомления (Фаза 3). На web/неподдерживаемых платформах — no-op.
-  final notifications = NotificationService();
-  await notifications.init();
+    // Уведомления (Фаза 3). На web/неподдерживаемых платформах — no-op.
+    final notifications = NotificationService();
+    await notifications.init();
 
-  // TODO(Фаза 2): инициализация Supabase.
+    // TODO(Фаза 2): инициализация Supabase.
 
-  // Первый запуск → онбординг.
-  final seenOnboarding = await OnboardingService.hasSeen();
-  final router = buildAppRouter(
-    initialLocation: seenOnboarding ? '/tasks' : '/onboarding',
-  );
+    // Первый запуск → онбординг.
+    final seenOnboarding = await OnboardingService.hasSeen();
+    final router = buildAppRouter(
+      initialLocation: seenOnboarding ? '/tasks' : '/onboarding',
+    );
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        databaseProvider.overrideWithValue(db),
-        notificationServiceProvider.overrideWithValue(notifications),
-      ],
-      child: RpgTaskApp(router: router),
-    ),
-  );
+    runApp(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          notificationServiceProvider.overrideWithValue(notifications),
+        ],
+        child: RpgTaskApp(router: router),
+      ),
+    );
+  } catch (e, st) {
+    // Инициализация упала — показываем ошибку вместо вечного сплэша.
+    debugPrint('BOOTSTRAP ERROR: $e\n$st');
+    runApp(_BootstrapErrorApp(error: e, stack: st));
+  }
+}
+
+/// Аварийный экран, если [bootstrap] не смог инициализировать приложение.
+class _BootstrapErrorApp extends StatelessWidget {
+  const _BootstrapErrorApp({required this.error, required this.stack});
+
+  final Object error;
+  final StackTrace stack;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF1a1024),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Ошибка запуска',
+                    style: TextStyle(
+                      color: Colors.amber,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SelectableText(
+                    '$error',
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                  ),
+                  const SizedBox(height: 16),
+                  SelectableText(
+                    '$stack',
+                    style: const TextStyle(color: Colors.white54, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
