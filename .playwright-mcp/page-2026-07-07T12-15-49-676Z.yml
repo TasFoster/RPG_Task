@@ -1,0 +1,17 @@
+- generic [ref=e1] [cursor=pointer]:
+  - img [ref=e2]
+  - generic [ref=e6]:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - heading "Аккаунт и синхронизация" [level=2] [ref=e7]
+            - group:
+              - generic [ref=e8]:
+                - generic: Регистрация
+              - generic [ref=e9]:
+                - generic: Один аккаунт синхронизирует данные между web и телефоном.
+              - textbox "Email" [ref=e11]: rpgsynctest2026@gmail.com
+              - textbox "Пароль" [ref=e13]: testpass123456
+              - button "Зарегистрироваться" [ref=e16]
+              - button "Уже есть аккаунт? Войти" [active] [ref=e17]
