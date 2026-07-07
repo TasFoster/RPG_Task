@@ -8,6 +8,7 @@ import 'core/database/app_database.dart';
 import 'core/database/database_provider.dart';
 import 'core/database/seed.dart';
 import 'core/notifications/notification_service.dart';
+import 'core/sync/supabase_init.dart';
 import 'features/onboarding/data/onboarding_service.dart';
 import 'features/tips/data/tips_push.dart';
 import 'features/tips/data/tips_service.dart';
@@ -23,6 +24,9 @@ Future<void> bootstrap() async {
   try {
     // Данные локали для форматирования дат/времени (русский).
     await initializeDateFormatting('ru');
+
+    // Облако (Supabase). Без конфигурации (--dart-define) — no-op, офлайн.
+    await initSupabase();
 
     // Локальная БД (Drift) + начальные данные (профиль, стандартные оси).
     final db = AppDatabase();

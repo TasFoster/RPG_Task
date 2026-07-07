@@ -1,0 +1,250 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../data/auth_service.dart';
+
+/// Экран «Аккаунт и синхронизация»: вход/регистрация по email и статус.
+class AccountScreen extends ConsumerWidget {
+  const AccountScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authServiceProvider);
+    final userAsync = ref.watch(authUserProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Аккаунт и синхронизация')),
+      body: !auth.isAvailable
+          ? const _NotConfigured()
+          : userAsync.when(
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Ошибка: $e')),
+              data: (user) =>
+                  user == null ? const _AuthForm() : _SignedIn(user: user),
+            ),
+    );
+  }
+}
+
+/// Облако не настроено (нет --dart-define с ключами Supabase).
+class _NotConfigured extends StatelessWidget {
+  const _NotConfigured();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cloud_off,
+                size: 64,
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+            const SizedBox(height: 16),
+            Text('Синхронизация не настроена',
+                style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(
+              'Приложение работает офлайн. Чтобы включить синхронизацию между '
+              'устройствами, соберите приложение с ключами Supabase '
+              '(--dart-define). См. docs/SUPABASE_RU.md.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Форма входа / регистрации по email и паролю.
+class _AuthForm extends ConsumerStatefulWidget {
+  const _AuthForm();
+
+  @override
+  ConsumerState<_AuthForm> createState() => _AuthFormState();
+}
+
+class _AuthFormState extends ConsumerState<_AuthForm> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isSignUp = false;
+  bool _busy = false;
+  String? _error;
+  String? _info;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.length < 6) {
+      setState(() => _error = 'Введите email и пароль (от 6 символов)');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+      _info = null;
+    });
+    try {
+      final auth = ref.read(authServiceProvider);
+      if (_isSignUp) {
+        await auth.signUp(email: email, password: password);
+        // При включённом подтверждении email вход произойдёт после письма.
+        setState(() => _info =
+            'Аккаунт создан. Если включено подтверждение email — проверьте почту.');
+      } else {
+        await auth.signIn(email: email, password: password);
+      }
+    } on Exception catch (e) {
+      setState(() => _error = _friendly(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  String _friendly(Object e) {
+    final s = e.toString();
+    if (s.contains('Invalid login')) return 'Неверный email или пароль';
+    if (s.contains('already registered')) {
+      return 'Такой email уже зарегистрирован';
+    }
+    return 'Не удалось: $s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Icon(Icons.cloud_sync,
+              size: 56, color: theme.colorScheme.primary),
+          const SizedBox(height: 12),
+          Text(
+            _isSignUp ? 'Регистрация' : 'Вход',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Один аккаунт синхронизирует данные между web и телефоном.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const [AutofillHints.email],
+            decoration: const InputDecoration(
+              labelText: 'Email',
+              prefixIcon: Icon(Icons.email_outlined),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _passwordController,
+            obscureText: true,
+            autofillHints: const [AutofillHints.password],
+            decoration: const InputDecoration(
+              labelText: 'Пароль',
+              prefixIcon: Icon(Icons.lock_outline),
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+          ],
+          if (_info != null) ...[
+            const SizedBox(height: 12),
+            Text(_info!, style: TextStyle(color: theme.colorScheme.primary)),
+          ],
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: _busy ? null : _submit,
+            child: _busy
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : Text(_isSignUp ? 'Зарегистрироваться' : 'Войти'),
+          ),
+          TextButton(
+            onPressed: _busy
+                ? null
+                : () => setState(() {
+                      _isSignUp = !_isSignUp;
+                      _error = null;
+                      _info = null;
+                    }),
+            child: Text(_isSignUp
+                ? 'Уже есть аккаунт? Войти'
+                : 'Нет аккаунта? Зарегистрироваться'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Состояние «пользователь вошёл»: email, кнопка выхода. Блок синхронизации
+/// (статус и ручной запуск) добавляется движком синхронизации.
+class _SignedIn extends ConsumerWidget {
+  final dynamic user;
+  const _SignedIn({required this.user});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final email = (user.email as String?) ?? 'аккаунт';
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Card(
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: theme.colorScheme.primaryContainer,
+              child: Icon(Icons.person, color: theme.colorScheme.primary),
+            ),
+            title: Text(email),
+            subtitle: const Text('Вы вошли — данные синхронизируются'),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const SyncStatusCard(),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          onPressed: () async {
+            await ref.read(authServiceProvider).signOut();
+          },
+          icon: const Icon(Icons.logout),
+          label: const Text('Выйти из аккаунта'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Заглушка карточки статуса синхронизации — наполняется движком синхронизации.
+/// (Определена здесь, переопределяется в модуле sync.)
+class SyncStatusCard extends StatelessWidget {
+  const SyncStatusCard({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}

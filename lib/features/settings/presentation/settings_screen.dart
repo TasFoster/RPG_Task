@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/notifications/notification_service.dart';
+import '../../auth/data/auth_service.dart';
 import '../../tips/data/tips_push.dart';
 import '../../tips/data/tips_service.dart';
 import '../../tips/data/tips_settings.dart';
@@ -68,6 +70,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Text('Аккаунт', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Card(
+            child: Consumer(
+              builder: (context, ref, _) {
+                final auth = ref.watch(authServiceProvider);
+                final user = ref.watch(authUserProvider).value;
+                final subtitle = !auth.isAvailable
+                    ? 'Офлайн-режим (облако не настроено)'
+                    : user == null
+                        ? 'Войдите для синхронизации между устройствами'
+                        : 'Вы вошли: ${user.email ?? 'аккаунт'}';
+                return ListTile(
+                  leading: Icon(
+                    user != null ? Icons.cloud_done : Icons.cloud_outlined,
+                    color: user != null ? theme.colorScheme.primary : null,
+                  ),
+                  title: const Text('Аккаунт и синхронизация'),
+                  subtitle: Text(subtitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/account'),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
           Text('Советы и мотивация', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Card(

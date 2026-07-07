@@ -8,6 +8,7 @@ import '../../features/skills/presentation/axes_manager_screen.dart';
 import '../../features/character/presentation/character_screen.dart';
 import '../../features/stats/presentation/stats_screen.dart';
 import '../../features/seasons/presentation/season_hall_screen.dart';
+import '../../features/auth/presentation/account_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/pomodoro/presentation/pomodoro_screen.dart';
 import '../../features/goals/presentation/goals_screen.dart';
@@ -46,6 +47,10 @@ GoRouter buildAppRouter({String initialLocation = '/tasks'}) => GoRouter(
     GoRoute(
       path: '/seasons',
       builder: (context, state) => const SeasonHallScreen(),
+    ),
+    GoRoute(
+      path: '/account',
+      builder: (context, state) => const AccountScreen(),
     ),
     GoRoute(
       path: '/goals',
