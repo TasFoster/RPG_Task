@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/gamification/balance.dart';
+import '../data/pomodoro_settings.dart';
 
 /// Фаза помодоро-цикла.
 enum PomodoroPhase { work, shortBreak, longBreak }
@@ -52,18 +52,28 @@ class PomodoroState {
 /// подписавшись на рост [PomodoroState.completedWorkSessions].
 class PomodoroNotifier extends Notifier<PomodoroState> {
   Timer? _timer;
-  static const _balance = GamificationBalance();
 
-  static int _durationFor(PomodoroPhase phase) => switch (phase) {
-        PomodoroPhase.work => _balance.pomodoroWorkMinutes * 60,
-        PomodoroPhase.shortBreak => _balance.pomodoroShortBreakMinutes * 60,
-        PomodoroPhase.longBreak => _balance.pomodoroLongBreakMinutes * 60,
+  int _durationFor(PomodoroPhase phase, PomodoroSettings s) => switch (phase) {
+        PomodoroPhase.work => s.workMinutes * 60,
+        PomodoroPhase.shortBreak => s.shortBreakMinutes * 60,
+        PomodoroPhase.longBreak => s.longBreakMinutes * 60,
       };
 
   @override
   PomodoroState build() {
     ref.onDispose(() => _timer?.cancel());
-    final total = _durationFor(PomodoroPhase.work);
+
+    // При изменении настроек, если таймер стоит, пересобираем текущую фазу
+    // под новую длительность (запущенный отсчёт не трогаем).
+    ref.listen<PomodoroSettings>(pomodoroSettingsProvider, (_, next) {
+      if (!state.isRunning) {
+        final total = _durationFor(state.phase, next);
+        state = state.copyWith(remainingSeconds: total, totalSeconds: total);
+      }
+    });
+
+    final total =
+        _durationFor(PomodoroPhase.work, ref.read(pomodoroSettingsProvider));
     return PomodoroState(
       phase: PomodoroPhase.work,
       remainingSeconds: total,
@@ -88,7 +98,8 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
   /// Сброс текущей фазы к началу (счётчик сессий сохраняется).
   void reset() {
     _timer?.cancel();
-    final total = _durationFor(state.phase);
+    final total =
+        _durationFor(state.phase, ref.read(pomodoroSettingsProvider));
     state = state.copyWith(
       remainingSeconds: total,
       totalSeconds: total,
@@ -115,20 +126,19 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
   /// Переход к следующей фазе. После рабочей сессии инкрементит счётчик
   /// (это сигнал экрану начислить награду) и выбирает длинный/короткий перерыв.
   void _advance() {
+    final s = ref.read(pomodoroSettingsProvider);
     late PomodoroPhase nextPhase;
     var completed = state.completedWorkSessions;
 
     if (state.phase == PomodoroPhase.work) {
       completed += 1;
-      final longDue =
-          completed % _balance.pomodoroCyclesBeforeLongBreak == 0;
+      final longDue = completed % s.cyclesBeforeLongBreak == 0;
       nextPhase = longDue ? PomodoroPhase.longBreak : PomodoroPhase.shortBreak;
     } else {
       nextPhase = PomodoroPhase.work;
     }
 
-    final total = _durationFor(nextPhase);
-    // Новая фаза не запускается автоматически — пользователь подтверждает старт.
+    final total = _durationFor(nextPhase, s);
     state = PomodoroState(
       phase: nextPhase,
       remainingSeconds: total,
@@ -136,6 +146,9 @@ class PomodoroNotifier extends Notifier<PomodoroState> {
       isRunning: false,
       completedWorkSessions: completed,
     );
+
+    // Автостарт следующей фазы, если включён в настройках.
+    if (s.autoStartNext) start();
   }
 }
 

@@ -6,6 +6,7 @@ import '../../../shared/widgets/reward_snackbar.dart';
 import '../../tips/data/tip.dart';
 import '../../tips/presentation/tip_widgets.dart';
 import 'pomodoro_notifier.dart';
+import 'pomodoro_settings_sheet.dart';
 
 /// Экран помодоро-таймера (мягкий фокус, этап 1: полноэкранный таймер).
 /// За каждую завершённую рабочую сессию начисляется опыт.
@@ -46,7 +47,16 @@ class PomodoroScreen extends ConsumerWidget {
         : theme.colorScheme.tertiary;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Помодоро')),
+      appBar: AppBar(
+        title: const Text('Помодоро'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Настройки интервалов',
+            onPressed: () => PomodoroSettingsSheet.show(context),
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
