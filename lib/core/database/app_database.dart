@@ -61,5 +61,13 @@ class AppDatabase extends _$AppDatabase {
 }
 
 QueryExecutor _openConnection() {
-  return driftDatabase(name: 'rpg_task_db');
+  return driftDatabase(
+    name: 'rpg_task_db',
+    // Для web нужны файлы sqlite3 и drift-воркера (лежат в web/, копируются
+    // в сборку). На нативных платформах параметр игнорируется.
+    web: DriftWebOptions(
+      sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+      driftWorker: Uri.parse('drift_worker.js'),
+    ),
+  );
 }
