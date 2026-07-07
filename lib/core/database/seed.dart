@@ -1,29 +1,29 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 import 'app_database.dart';
-
-const _uuid = Uuid();
 
 /// Фиксированный id единственного профиля игрока.
 const String kProfileId = 'me';
 
 class _AxisSeed {
+  final String id;
   final String name;
   final IconData icon;
   final Color color;
-  const _AxisSeed(this.name, this.icon, this.color);
+  const _AxisSeed(this.id, this.name, this.icon, this.color);
 }
 
 /// Стандартный набор осей «розы навыков» (создаётся при первом запуске).
+/// id — стабильные (не случайные), чтобы дефолтные оси на разных устройствах
+/// совпадали и сливались при синхронизации, а не дублировались.
 const List<_AxisSeed> _defaultAxes = [
-  _AxisSeed('Здоровье', Icons.favorite, Color(0xFF16A34A)),
-  _AxisSeed('Спорт', Icons.fitness_center, Color(0xFFEA580C)),
-  _AxisSeed('Учёба', Icons.school, Color(0xFF38BDF8)),
-  _AxisSeed('Работа', Icons.work, Color(0xFF6D28D9)),
-  _AxisSeed('Творчество', Icons.brush, Color(0xFFD4AF37)),
-  _AxisSeed('Отношения', Icons.people, Color(0xFFEC4899)),
+  _AxisSeed('axis_health', 'Здоровье', Icons.favorite, Color(0xFF16A34A)),
+  _AxisSeed('axis_sport', 'Спорт', Icons.fitness_center, Color(0xFFEA580C)),
+  _AxisSeed('axis_study', 'Учёба', Icons.school, Color(0xFF38BDF8)),
+  _AxisSeed('axis_work', 'Работа', Icons.work, Color(0xFF6D28D9)),
+  _AxisSeed('axis_creativity', 'Творчество', Icons.brush, Color(0xFFD4AF37)),
+  _AxisSeed('axis_relations', 'Отношения', Icons.people, Color(0xFFEC4899)),
 ];
 
 /// Заполняет БД начальными данными: профиль игрока и стандартные оси.
@@ -43,7 +43,7 @@ Future<void> seedDatabase(AppDatabase db) async {
     for (final a in _defaultAxes) {
       await db.into(db.skillAxes).insert(
             SkillAxesCompanion.insert(
-              id: _uuid.v4(),
+              id: a.id,
               name: a.name,
               iconCodePoint: a.icon.codePoint,
               colorValue: a.color.toARGB32(),

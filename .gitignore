@@ -57,3 +57,6 @@ coverage/
 .claude/scheduled_tasks.lock
 .claude/settings.local.json
 .claude/.session*
+
+# ============ Supabase (локальные ключи, не коммитить) ============
+env.json

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../core/sync/sync_service.dart';
 import '../data/auth_service.dart';
 
 /// Экран «Аккаунт и синхронизация»: вход/регистрация по email и статус.
@@ -240,11 +242,89 @@ class _SignedIn extends ConsumerWidget {
   }
 }
 
-/// Заглушка карточки статуса синхронизации — наполняется движком синхронизации.
-/// (Определена здесь, переопределяется в модуле sync.)
-class SyncStatusCard extends StatelessWidget {
+/// Карточка статуса облачной синхронизации + ручной запуск.
+class SyncStatusCard extends ConsumerWidget {
   const SyncStatusCard({super.key});
 
   @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final sync = ref.watch(syncControllerProvider);
+    final busy = sync.status == SyncStatus.syncing;
+
+    final (IconData icon, String text, Color color) = switch (sync.status) {
+      SyncStatus.syncing => (
+          Icons.sync,
+          'Синхронизация…',
+          theme.colorScheme.primary
+        ),
+      SyncStatus.success => (
+          Icons.cloud_done,
+          sync.lastSyncedAt == null
+              ? 'Синхронизировано'
+              : 'Синхронизировано в ${DateFormat('HH:mm', 'ru').format(sync.lastSyncedAt!)}',
+          theme.colorScheme.primary
+        ),
+      SyncStatus.error => (
+          Icons.sync_problem,
+          'Ошибка синхронизации',
+          theme.colorScheme.error
+        ),
+      SyncStatus.offline => (
+          Icons.cloud_off,
+          'Не в сети',
+          theme.colorScheme.onSurfaceVariant
+        ),
+      SyncStatus.idle => (
+          Icons.cloud_queue,
+          'Готово к синхронизации',
+          theme.colorScheme.onSurfaceVariant
+        ),
+    };
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color),
+                const SizedBox(width: 12),
+                Expanded(child: Text(text)),
+              ],
+            ),
+            if (sync.status == SyncStatus.error && sync.error != null) ...[
+              const SizedBox(height: 8),
+              Text(sync.error!,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: theme.colorScheme.error)),
+            ],
+            const SizedBox(height: 12),
+            Text(
+              'Данные синхронизируются автоматически при входе, возврате в '
+              'приложение и периодически. Можно запустить вручную.',
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: busy
+                  ? null
+                  : () =>
+                      ref.read(syncControllerProvider.notifier).syncNow(),
+              icon: busy
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.sync),
+              label: const Text('Синхронизировать сейчас'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
