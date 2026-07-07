@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'tip.dart';
 import 'tips_catalog.dart';
@@ -35,24 +34,3 @@ class TipsService {
 }
 
 final tipsServiceProvider = Provider<TipsService>((_) => const TipsService());
-
-/// Настройка «показывать советы и цитаты». Хранится в SharedPreferences,
-/// по умолчанию включена. Управляет и «Советом дня», и контекстными подсказками.
-class TipsEnabledNotifier extends AsyncNotifier<bool> {
-  static const _key = 'tips_enabled_v1';
-
-  @override
-  Future<bool> build() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_key) ?? true;
-  }
-
-  Future<void> set(bool value) async {
-    state = AsyncData(value);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_key, value);
-  }
-}
-
-final tipsEnabledProvider =
-    AsyncNotifierProvider<TipsEnabledNotifier, bool>(TipsEnabledNotifier.new);

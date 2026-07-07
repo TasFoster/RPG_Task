@@ -9,6 +9,10 @@ import 'core/database/database_provider.dart';
 import 'core/database/seed.dart';
 import 'core/notifications/notification_service.dart';
 import 'features/onboarding/data/onboarding_service.dart';
+import 'features/tips/data/tips_push.dart';
+import 'features/tips/data/tips_service.dart';
+import 'features/tips/data/tips_settings.dart';
+import 'features/widgets/home_widgets_service.dart';
 
 /// Инициализация приложения до запуска UI.
 Future<void> bootstrap() async {
@@ -25,6 +29,13 @@ Future<void> bootstrap() async {
     // Уведомления (Фаза 3). На web/неподдерживаемых платформах — no-op.
     final notifications = NotificationService();
     await notifications.init();
+
+    // Перепланировать пуш-советы согласно сохранённым настройкам (утро/вечер).
+    final tipsSettings = await TipsSettings.load();
+    await applyTipPushSchedule(notifications, const TipsService(), tipsSettings);
+
+    // Обновить виджеты главного экрана (Android; на web — no-op).
+    await updateHomeWidgets(db);
 
     // TODO(Фаза 2): инициализация Supabase.
 

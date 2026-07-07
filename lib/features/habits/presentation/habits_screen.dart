@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/reward_service.dart';
 import '../../../shared/utils/icons.dart';
 import '../../../shared/utils/labels.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
+import '../../../core/database/database_provider.dart';
+import '../../codex/data/codex_repository.dart';
 import '../../skills/data/skill_repository.dart';
+import '../../widgets/home_widgets_service.dart';
 import '../data/habit_repository.dart';
 import 'add_habit_dialog.dart';
+import 'habit_heatmap_card.dart';
 
 /// Экран привычек: список со стриками и отметкой выполнения.
 class HabitsScreen extends ConsumerWidget {
@@ -36,17 +41,26 @@ class HabitsScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Ошибка: $e')),
         data: (habits) {
-          if (habits.isEmpty) {
-            return const _EmptyState();
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
-            itemCount: habits.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 4),
-            itemBuilder: (context, i) {
-              final habit = habits[i];
-              return _HabitTile(habit: habit, axis: axesById[habit.axisId]);
-            },
+          return Column(
+            children: [
+              if (habits.isNotEmpty)
+                const HabitHeatmapCard(
+                    title: 'Жизнь героя', icon: Icons.auto_graph),
+              Expanded(
+                child: habits.isEmpty
+                    ? const _EmptyState()
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+                        itemCount: habits.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 4),
+                        itemBuilder: (context, i) {
+                          final habit = habits[i];
+                          return _HabitTile(
+                              habit: habit, axis: axesById[habit.axisId]);
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
@@ -75,6 +89,11 @@ class _HabitTile extends ConsumerWidget {
 
     Future<void> complete() async {
       final reward = await ref.read(rewardServiceProvider).completeHabit(habit);
+      if (reward != null) {
+        // Активность открывает новую запись в Кодексе героя.
+        await ref.read(codexRepositoryProvider).grantLoot();
+        await updateHomeWidgets(ref.read(databaseProvider));
+      }
       if (context.mounted && reward != null) {
         showRewardSnackBar(context, reward);
       }
@@ -100,6 +119,7 @@ class _HabitTile extends ConsumerWidget {
             color: doneToday ? theme.colorScheme.primary : null,
             onPressed: doneToday ? null : complete,
           ),
+          onTap: () => context.push('/habit/${habit.id}'),
           title: Text(habit.title),
           subtitle: Row(
             children: [

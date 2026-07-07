@@ -26,4 +26,7 @@ enum RewardReason {
   focusSession,
   purchase,
   manual,
+  // Новые причины добавляются только в конец: индекс хранится в БД.
+  sleepReward,
+  codexComplete,
 }

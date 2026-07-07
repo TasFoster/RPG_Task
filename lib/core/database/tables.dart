@@ -165,6 +165,28 @@ class InventoryItems extends Table with _SyncColumns {
   Set<Column> get primaryKey => {id};
 }
 
+/// Записи сна: одна запись за ночь. dateKey — дата подъёма (YYYY-MM-DD).
+class SleepLogs extends Table with _SyncColumns {
+  TextColumn get dateKey => text()(); // дата подъёма 'YYYY-MM-DD'
+  DateTimeColumn get bedTime => dateTime()();
+  DateTimeColumn get wakeTime => dateTime()();
+  TextColumn get note => text().nullable()();
+  IntColumn get xpAwarded => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Кодекс героя: прогресс по цитатам/советам. id = стабильный ключ из каталога.
+class CodexEntries extends Table with _SyncColumns {
+  DateTimeColumn get discoveredAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Журнал транзакций валют/опыта (append-only событийный лог).
 class CurrencyTransactions extends Table with _SyncColumns {
   IntColumn get kind => intEnum<CurrencyKind>()();

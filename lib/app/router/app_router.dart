@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/tasks/presentation/tasks_screen.dart';
 import '../../features/habits/presentation/habits_screen.dart';
+import '../../features/habits/presentation/habit_detail_screen.dart';
 import '../../features/skills/presentation/skills_screen.dart';
 import '../../features/character/presentation/character_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
@@ -11,6 +12,9 @@ import '../../features/goals/presentation/goal_detail_screen.dart';
 import '../../features/quests/presentation/quests_screen.dart';
 import '../../features/achievements/presentation/achievements_screen.dart';
 import '../../features/shop/presentation/shop_screen.dart';
+import '../../features/codex/presentation/codex_screen.dart';
+import '../../features/sleep/presentation/sleep_screen.dart';
+import '../../features/sleep/presentation/chronotype_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../widgets/home_shell.dart';
 
@@ -48,6 +52,23 @@ GoRouter buildAppRouter({String initialLocation = '/tasks'}) => GoRouter(
     GoRoute(
       path: '/shop',
       builder: (context, state) => const ShopScreen(),
+    ),
+    GoRoute(
+      path: '/codex',
+      builder: (context, state) => const CodexScreen(),
+    ),
+    GoRoute(
+      path: '/habit/:id',
+      builder: (context, state) =>
+          HabitDetailScreen(habitId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/sleep',
+      builder: (context, state) => const SleepScreen(),
+    ),
+    GoRoute(
+      path: '/sleep/chronotype',
+      builder: (context, state) => const ChronotypeScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>

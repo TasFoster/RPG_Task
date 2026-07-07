@@ -160,6 +160,37 @@ class NotificationService {
     );
   }
 
+  /// Ежедневный совет/цитата на минуту суток [minuteOfDay] (утро/вечер).
+  /// [slotKey] — стабильный ключ слота ('tip_morning'/'tip_evening'), чтобы
+  /// перепланирование перезаписывало прежнее уведомление, а не плодило дубли.
+  Future<void> scheduleDailyTip({
+    required String slotKey,
+    required int minuteOfDay,
+    required String title,
+    required String body,
+  }) async {
+    if (!_supported) return;
+    await init();
+    final first = nextDailyOccurrence(minuteOfDay: minuteOfDay, now: DateTime.now());
+    await _plugin.zonedSchedule(
+      notificationIdFor(slotKey),
+      title,
+      body,
+      tz.TZDateTime.from(first, tz.local),
+      _details(NotificationChannels.reminders),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: 'tip:$slotKey',
+    );
+  }
+
+  /// Отмена слота ежедневного совета ('tip_morning'/'tip_evening').
+  Future<void> cancelDailyTip(String slotKey) async {
+    if (!_supported) return;
+    await init();
+    await _plugin.cancel(notificationIdFor(slotKey));
+  }
+
   /// Отмена запланированного уведомления сущности.
   Future<void> cancel(String entityId) async {
     if (!_supported) return;

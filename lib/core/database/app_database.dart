@@ -22,6 +22,8 @@ part 'app_database.g.dart';
     DailyQuests,
     UserAchievements,
     InventoryItems,
+    SleepLogs,
+    CodexEntries,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -31,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -51,6 +53,11 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(dailyQuests);
             await m.createTable(userAchievements);
             await m.createTable(inventoryItems);
+          }
+          // v3 → v4 (Этап B/E): сон и Кодекс героя.
+          if (from < 4) {
+            await m.createTable(sleepLogs);
+            await m.createTable(codexEntries);
           }
         },
         beforeOpen: (details) async {

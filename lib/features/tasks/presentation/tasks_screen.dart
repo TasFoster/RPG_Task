@@ -8,9 +8,12 @@ import '../../../core/models/enums.dart';
 import '../../../shared/utils/icons.dart';
 import '../../../shared/utils/labels.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
+import '../../../core/database/database_provider.dart';
+import '../../codex/data/codex_repository.dart';
 import '../../skills/data/skill_repository.dart';
 import '../../tips/data/tip.dart';
 import '../../tips/presentation/tip_widgets.dart';
+import '../../widgets/home_widgets_service.dart';
 import '../data/task_repository.dart';
 import 'add_task_dialog.dart';
 
@@ -30,6 +33,11 @@ class TasksScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Задачи'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.menu_book_outlined),
+            tooltip: 'Кодекс героя',
+            onPressed: () => context.push('/codex'),
+          ),
           IconButton(
             icon: const Icon(Icons.timer_outlined),
             tooltip: 'Помодоро',
@@ -88,6 +96,9 @@ class _TaskTile extends ConsumerWidget {
       final reward = await ref.read(rewardServiceProvider).completeTask(task);
       // Задача выполнена — разовое напоминание больше не нужно.
       await ref.read(taskRepositoryProvider).cancelReminder(task.id);
+      // Активность открывает новую запись в Кодексе героя.
+      await ref.read(codexRepositoryProvider).grantLoot();
+      await updateHomeWidgets(ref.read(databaseProvider));
       if (context.mounted) showRewardSnackBar(context, reward);
     }
 

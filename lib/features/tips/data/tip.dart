@@ -46,4 +46,15 @@ class Tip {
   final String? author;
 
   const Tip(this.type, this.category, this.text, [this.author]);
+
+  /// Стабильный ключ для Кодекса (хранится в БД). Детерминирован по тексту
+  /// (FNV-1a): не меняется, пока не меняется сам текст цитаты/совета.
+  String get key {
+    var h = 0x811c9dc5;
+    for (final c in text.codeUnits) {
+      h ^= c;
+      h = (h * 0x01000193) & 0xFFFFFFFF;
+    }
+    return 't${h.toRadixString(16)}';
+  }
 }

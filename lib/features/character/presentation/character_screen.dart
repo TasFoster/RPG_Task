@@ -154,6 +154,23 @@ class CharacterScreen extends ConsumerWidget {
                       ),
                       const Divider(height: 1),
                       ListTile(
+                        leading: Icon(Icons.menu_book,
+                            color: theme.colorScheme.primary),
+                        title: const Text('Кодекс героя'),
+                        subtitle: const Text('Коллекция цитат и советов'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/codex'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.bedtime, color: AppTheme.crystalBlue),
+                        title: const Text('Трекер сна'),
+                        subtitle: const Text('Циклы сна и циркадные ритмы'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/sleep'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
                         leading: Icon(Icons.storefront,
                             color: AppTheme.guildGold),
                         title: const Text('Магазин'),

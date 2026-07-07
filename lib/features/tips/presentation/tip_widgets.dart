@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/tip.dart';
 import '../data/tips_service.dart';
+import '../data/tips_settings.dart';
 
 /// Заголовок-обёртка в RPG-стиле по типу контента.
 String _flavorHeader(TipType type) => switch (type) {
@@ -24,8 +25,10 @@ class DailyTipCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final enabled = ref.watch(tipsEnabledProvider).value ?? false;
-    if (!enabled) return const SizedBox.shrink();
+    final settings = ref.watch(tipsSettingsProvider).value;
+    if (settings == null || !settings.dailyEnabled) {
+      return const SizedBox.shrink();
+    }
 
     final theme = Theme.of(context);
     final tip = ref.watch(tipsServiceProvider).dailyTip(DateTime.now());
@@ -96,8 +99,10 @@ class ContextualTip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final enabled = ref.watch(tipsEnabledProvider).value ?? false;
-    if (!enabled) return const SizedBox.shrink();
+    final settings = ref.watch(tipsSettingsProvider).value;
+    if (settings == null || !settings.contextualEnabled) {
+      return const SizedBox.shrink();
+    }
 
     final theme = Theme.of(context);
     final tip = ref.watch(tipsServiceProvider).contextual(category, salt: salt);

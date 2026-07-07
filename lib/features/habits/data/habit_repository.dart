@@ -55,6 +55,37 @@ class HabitRepository {
     }
   }
 
+  /// Дата без времени (ключ дня для хитмапа).
+  static DateTime dayOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// Поток «количество выполнений по дням» для хитмапа.
+  /// [habitId] == null — сводка по всем привычкам («жизнь героя»).
+  Stream<Map<DateTime, int>> watchDailyCounts({String? habitId}) {
+    final query = db.select(db.habitLogs)
+      ..where((l) => l.value.isBiggerThanValue(0));
+    if (habitId != null) {
+      query.where((l) => l.habitId.equals(habitId));
+    }
+    return query.watch().map((logs) {
+      final map = <DateTime, int>{};
+      for (final l in logs) {
+        final d = dayOnly(l.completedAt);
+        map[d] = (map[d] ?? 0) + 1;
+      }
+      return map;
+    });
+  }
+
+  Future<Habit?> habitById(String id) {
+    return (db.select(db.habits)..where((h) => h.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  Stream<Habit?> watchHabit(String id) {
+    return (db.select(db.habits)..where((h) => h.id.equals(id)))
+        .watchSingleOrNull();
+  }
+
   Future<void> softDelete(String id) async {
     await (db.update(db.habits)..where((h) => h.id.equals(id))).write(
       HabitsCompanion(
@@ -76,4 +107,15 @@ final habitRepositoryProvider = Provider<HabitRepository>((ref) {
 
 final habitsStreamProvider = StreamProvider<List<Habit>>((ref) {
   return ref.watch(habitRepositoryProvider).watchHabits();
+});
+
+/// Хитмап выполнений по дням. Ключ семьи — id привычки или null (сводка).
+final habitHeatmapProvider =
+    StreamProvider.family<Map<DateTime, int>, String?>((ref, habitId) {
+  return ref.watch(habitRepositoryProvider).watchDailyCounts(habitId: habitId);
+});
+
+final habitByIdProvider =
+    StreamProvider.family<Habit?, String>((ref, id) {
+  return ref.watch(habitRepositoryProvider).watchHabit(id);
 });
