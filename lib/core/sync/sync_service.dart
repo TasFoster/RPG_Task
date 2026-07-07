@@ -59,6 +59,7 @@ class SyncEntity<T extends Table, D extends DataClass> {
 List<SyncEntity> syncEntities(AppDatabase db) => [
       SyncEntity(db.profiles),
       SyncEntity(db.skillAxes),
+      SyncEntity(db.notes), // FK: notes.axisId → skill_axes
       SyncEntity(db.habits),
       SyncEntity(db.goals),
       SyncEntity(db.tasks),

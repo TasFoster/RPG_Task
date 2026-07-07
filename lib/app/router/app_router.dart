@@ -19,6 +19,7 @@ import '../../features/shop/presentation/shop_screen.dart';
 import '../../features/codex/presentation/codex_screen.dart';
 import '../../features/sleep/presentation/sleep_screen.dart';
 import '../../features/sleep/presentation/chronotype_screen.dart';
+import '../../features/notes/presentation/notes_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../widgets/home_shell.dart';
 
@@ -123,6 +124,14 @@ GoRouter buildAppRouter({String initialLocation = '/tasks'}) => GoRouter(
             GoRoute(
               path: '/character',
               builder: (context, state) => const CharacterScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/notes',
+              builder: (context, state) => const NotesScreen(),
             ),
           ],
         ),
