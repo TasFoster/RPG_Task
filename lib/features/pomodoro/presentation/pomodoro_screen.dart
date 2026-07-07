@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/gamification/reward_service.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
+import '../../tips/data/tip.dart';
+import '../../tips/presentation/tip_widgets.dart';
 import 'pomodoro_notifier.dart';
 
 /// Экран помодоро-таймера (мягкий фокус, этап 1: полноэкранный таймер).
@@ -107,6 +109,11 @@ class PomodoroScreen extends ConsumerWidget {
                   tooltip: 'Пропустить фазу',
                 ),
               ],
+            ),
+            const SizedBox(height: 40),
+            ContextualTip(
+              category: TipCategory.focus,
+              salt: state.completedWorkSessions,
             ),
           ],
         ),

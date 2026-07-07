@@ -9,6 +9,8 @@ import '../../../shared/utils/icons.dart';
 import '../../../shared/utils/labels.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
 import '../../skills/data/skill_repository.dart';
+import '../../tips/data/tip.dart';
+import '../../tips/presentation/tip_widgets.dart';
 import '../data/task_repository.dart';
 import 'add_task_dialog.dart';
 
@@ -47,17 +49,24 @@ class TasksScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Ошибка: $e')),
         data: (tasks) {
-          if (tasks.isEmpty) {
-            return const _EmptyState();
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
-            itemCount: tasks.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 4),
-            itemBuilder: (context, i) {
-              final task = tasks[i];
-              return _TaskTile(task: task, axis: axesById[task.axisId]);
-            },
+          return Column(
+            children: [
+              const DailyTipCard(),
+              Expanded(
+                child: tasks.isEmpty
+                    ? const _EmptyState()
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+                        itemCount: tasks.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 4),
+                        itemBuilder: (context, i) {
+                          final task = tasks[i];
+                          return _TaskTile(
+                              task: task, axis: axesById[task.axisId]);
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
@@ -154,6 +163,11 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text('Нажмите «Задача», чтобы добавить первую',
               style: theme.textTheme.bodySmall),
+          const SizedBox(height: 24),
+          ContextualTip(
+            category: TipCategory.motivation,
+            salt: DateTime.now().day,
+          ),
         ],
       ),
     );

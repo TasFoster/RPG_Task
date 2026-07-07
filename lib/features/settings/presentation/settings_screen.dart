@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/notifications/notification_service.dart';
+import '../../tips/data/tips_service.dart';
 
 /// Экран настроек. Раздел «Уведомления» — Фаза 3.
 /// (Тема, звуки, аккаунт/синхронизация — по мере реализации остальных фаз.)
@@ -38,6 +39,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Text('Советы и мотивация', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.auto_stories),
+              title: const Text('Советы и цитаты'),
+              subtitle: const Text(
+                'Совет дня на главном экране и подсказки по тайм-менеджменту, '
+                'дисциплине и мотивации.',
+              ),
+              value: ref.watch(tipsEnabledProvider).value ?? true,
+              onChanged: (v) => ref.read(tipsEnabledProvider.notifier).set(v),
+            ),
+          ),
+          const SizedBox(height: 24),
           Text('Уведомления', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Card(
