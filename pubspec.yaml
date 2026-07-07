@@ -70,6 +70,26 @@ dev_dependencies:
   build_runner: ^2.15.0
   drift_dev: ^2.34.0
   mocktail: ^1.0.5
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.4
+
+# Иконки приложения (placeholder — заменить на финальный арт 1024x1024).
+# Генерация: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#1a1024"
+  adaptive_icon_foreground: "assets/icon/icon.png"
+
+# Экран запуска. Генерация: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#1a1024"
+  image: assets/icon/icon.png
+  android_12:
+    color: "#1a1024"
+    image: assets/icon/icon.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
