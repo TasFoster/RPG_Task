@@ -14,6 +14,7 @@
 - [SETUP_RU.md](docs/SETUP_RU.md) — установка окружения разработки (Windows).
 - [ARCHITECTURE_RU.md](docs/ARCHITECTURE_RU.md) — архитектура и структура кода.
 - [GAMIFICATION_RU.md](docs/GAMIFICATION_RU.md) — формулы опыта, валют и уровней.
+- [ROADMAP_RU.md](docs/ROADMAP_RU.md) — будущие доработки: советы/цитаты, мотивация, backlog идей.
 - [PRIVACY_POLICY_RU.md](docs/PRIVACY_POLICY_RU.md) / [EN](docs/PRIVACY_POLICY_EN.md) — политика конфиденциальности.
 
 ## Быстрый старт

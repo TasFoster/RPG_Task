@@ -27,6 +27,7 @@ Flutter · Riverpod · Drift (SQLite) · Supabase · go_router · fl_chart · fl
 - [SETUP_RU.md](SETUP_RU.md) — установка окружения разработки (Windows).
 - [ARCHITECTURE_RU.md](ARCHITECTURE_RU.md) — архитектура, структура кода, синхронизация.
 - [GAMIFICATION_RU.md](GAMIFICATION_RU.md) — формулы опыта, валюты, уровней.
+- [ROADMAP_RU.md](ROADMAP_RU.md) — дорожная карта: советы/цитаты, мотивация, backlog идей.
 
 ## Быстрый старт (после установки окружения)
 
