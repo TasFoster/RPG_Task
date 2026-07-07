@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:rpg_task/app/app.dart';
+import 'package:rpg_task/app/router/app_router.dart';
 import 'package:rpg_task/core/database/app_database.dart';
 import 'package:rpg_task/features/tasks/data/task_repository.dart';
 import 'package:rpg_task/features/skills/data/skill_repository.dart';
@@ -23,7 +24,7 @@ void main() {
           axesStreamProvider
               .overrideWith((ref) => Stream.value(const <SkillAxe>[])),
         ],
-        child: RpgTaskApp(),
+        child: RpgTaskApp(router: buildAppRouter()),
       ),
     );
     await tester.pump();

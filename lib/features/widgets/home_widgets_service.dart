@@ -11,17 +11,39 @@ bool get _supported =>
 
 /// Собирает «снимок» данных (задачи, привычки, боссы) и обновляет виджеты
 /// главного экрана. На web/iOS — тихий no-op.
+///
+/// Данные сохраняются в SharedPreferences плагином home_widget, откуда их
+/// читают Android-провайдеры (см. WidgetRender.kt). Обновление вызывается:
+/// при старте (bootstrap), при возврате приложения из фона и по таймеру
+/// (см. app.dart), а также после изменений (выполнение задач/привычек).
 Future<void> updateHomeWidgets(AppDatabase db) async {
   if (!_supported) return;
   try {
-    await HomeWidget.saveWidgetData('w_tasks', await _tasksText(db));
-    await HomeWidget.saveWidgetData('w_habits', await _habitsText(db));
-    await HomeWidget.saveWidgetData('w_boss', await _bossText(db));
-    await HomeWidget.updateWidget(androidName: 'TasksWidgetProvider');
-    await HomeWidget.updateWidget(androidName: 'HabitsWidgetProvider');
-    await HomeWidget.updateWidget(androidName: 'BossWidgetProvider');
-  } catch (_) {
-    // Виджет мог быть не добавлен на экран — не критично.
+    // Сохраняем данные (это и есть источник для провайдеров).
+    await HomeWidget.saveWidgetData<String>('w_tasks', await _tasksText(db));
+    await HomeWidget.saveWidgetData<String>('w_habits', await _habitsText(db));
+    await HomeWidget.saveWidgetData<String>('w_boss', await _bossText(db));
+
+    // Просим систему перерисовать каждый виджет. Если провайдер не найден
+    // (виджет не добавлен на экран) — это не критично, данные уже сохранены.
+    for (final name in const [
+      'TasksWidgetProvider',
+      'HabitsWidgetProvider',
+      'BossWidgetProvider',
+    ]) {
+      try {
+        await HomeWidget.updateWidget(
+          name: name,
+          androidName: name,
+          qualifiedAndroidName: 'com.tasfoster.rpg_task.$name',
+        );
+      } catch (e) {
+        if (kDebugMode) debugPrint('updateWidget($name) failed: $e');
+      }
+    }
+  } catch (e, st) {
+    // Ошибку не проглатываем молча — в debug видно, что пошло не так.
+    if (kDebugMode) debugPrint('updateHomeWidgets failed: $e\n$st');
   }
 }
 
