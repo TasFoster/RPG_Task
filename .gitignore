@@ -60,3 +60,6 @@ coverage/
 
 # ============ Supabase (локальные ключи, не коммитить) ============
 env.json
+
+# Playwright MCP артефакты
+.playwright-mcp/
