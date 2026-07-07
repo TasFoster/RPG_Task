@@ -1,17 +1,28 @@
-# rpg_task
+# RPG Task Tracker
 
-A new Flutter project.
+Мобильное приложение-трекер **задач, привычек и целей** в RPG/фэнтези-стиле с геймификацией
+(опыт, золото, уровни, стрики, достижения, боссы-цели, персонаж и питомец).
 
-## Getting Started
+Основная платформа — **Android**, также собирается под **Web**. Написано на Flutter, работает офлайн
+(локальная БД на Drift). Интерфейс на русском и английском.
 
-This project is a starting point for a Flutter application.
+## Документация
 
-A few resources to get you started if this is your first Flutter project:
+Вся проектная документация — в каталоге [`docs/`](docs/):
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- [README_RU.md](docs/README_RU.md) — обзор функций и быстрый старт.
+- [SETUP_RU.md](docs/SETUP_RU.md) — установка окружения разработки (Windows).
+- [ARCHITECTURE_RU.md](docs/ARCHITECTURE_RU.md) — архитектура и структура кода.
+- [GAMIFICATION_RU.md](docs/GAMIFICATION_RU.md) — формулы опыта, валют и уровней.
+- [PRIVACY_POLICY_RU.md](docs/PRIVACY_POLICY_RU.md) / [EN](docs/PRIVACY_POLICY_EN.md) — политика конфиденциальности.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Быстрый старт
+
+```powershell
+flutter pub get
+flutter run                                  # запуск на устройстве/эмуляторе
+flutter build apk --release                  # Android release
+flutter build web --release --no-tree-shake-icons   # Web release
+```
+
+> Web-сборку обязательно запускать с `--no-tree-shake-icons` — иконки задаются динамически из БД.

@@ -1,11 +1,11 @@
 {
-    "name": "rpg_task",
-    "short_name": "rpg_task",
+    "name": "RPG Task Tracker",
+    "short_name": "RPG Task",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#1a1024",
+    "theme_color": "#1a1024",
+    "description": "Трекер задач, привычек и целей в RPG-стиле с геймификацией.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
