@@ -134,6 +134,79 @@ class RewardService {
     });
   }
 
+  /// Отметка привычки задним числом за [day] (например, вчера, если забыл).
+  /// Серия пересчитывается из журнала выполнений целиком, поэтому «дырка»,
+  /// закрытая задним числом, корректно склеивает серию. Возвращает null,
+  /// если за этот день отметка уже есть.
+  Future<RewardResult?> completeHabitOn(Habit habit, DateTime day) {
+    return db.transaction(() async {
+      final dayKey = _dateOnly(day);
+
+      final logs = await (db.select(db.habitLogs)
+            ..where((l) =>
+                l.habitId.equals(habit.id) &
+                l.isDeleted.equals(false) &
+                l.value.isBiggerThanValue(0)))
+          .get();
+      final days = {for (final l in logs) _dateOnly(l.completedAt)};
+      if (days.contains(dayKey)) return null; // уже отмечено за этот день
+
+      // Считаем серию с учётом новой отметки: идём назад от сегодня
+      // (или от вчера, если сегодня ещё не отмечено — серия не сломана,
+      // пока день не закончился).
+      days.add(dayKey);
+      final today = _dateOnly(DateTime.now());
+      var cursor =
+          days.contains(today) ? today : today.subtract(const Duration(days: 1));
+      var newStreak = 0;
+      while (days.contains(cursor)) {
+        newStreak++;
+        cursor = cursor.subtract(const Duration(days: 1));
+      }
+
+      final input = RewardInput(
+        type: ActivityType.habit,
+        difficulty: habit.difficulty,
+        frequency: habit.frequency,
+        streak: newStreak,
+      );
+      final reward = engine.reward(input);
+
+      // Полдень — нейтральное время внутри дня (не путает границы суток).
+      final completedAt = dayKey.add(const Duration(hours: 12));
+      final last = habit.lastCompletedAt;
+      final newLast =
+          (last == null || completedAt.isAfter(last)) ? completedAt : last;
+
+      await (db.update(db.habits)..where((h) => h.id.equals(habit.id))).write(
+        HabitsCompanion(
+          streakCurrent: Value(newStreak),
+          streakBest: Value(math.max(newStreak, habit.streakBest)),
+          lastCompletedAt: Value(newLast),
+          dirty: const Value(true),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+      await db.into(db.habitLogs).insert(
+            HabitLogsCompanion.insert(
+              id: _uuid.v4(),
+              habitId: habit.id,
+              completedAt: Value(completedAt),
+              value: const Value(1),
+              xp: Value(reward.xp),
+              gold: Value(reward.gold),
+            ),
+          );
+
+      await _applyRewards(reward,
+          reason: RewardReason.habitCompleted,
+          refId: habit.id,
+          axisId: habit.axisId);
+      return reward;
+    });
+  }
+
   /// Начисление за завершённый фокус-сеанс (помодоро) на [minutes] минут.
   /// Опционально относится к оси навыка [axisId].
   Future<RewardResult> awardFocusSession({

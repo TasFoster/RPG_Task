@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/models/enums.dart';
 import '../data/goal_repository.dart';
+import 'goal_edit_dialog.dart';
 
 /// Список целей и боссов.
 class GoalsScreen extends ConsumerWidget {
@@ -17,7 +18,10 @@ class GoalsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Цели и боссы')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddGoal(context, ref),
+        onPressed: () => showDialog(
+          context: context,
+          builder: (_) => const GoalEditDialog(),
+        ),
         icon: const Icon(Icons.add),
         label: const Text('Цель'),
       ),
@@ -49,17 +53,34 @@ class GoalsScreen extends ConsumerWidget {
   }
 }
 
-class _GoalTile extends StatelessWidget {
+class _GoalTile extends ConsumerWidget {
   final Goal goal;
   const _GoalTile({required this.goal});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final done = goal.status == GoalStatus.completed;
     final hpFrac = goal.hpTotal == 0
         ? 0.0
         : (goal.hpRemaining / goal.hpTotal).clamp(0.0, 1.0);
+
+    void deleteWithUndo() {
+      final messenger = ScaffoldMessenger.of(context);
+      final repo = ref.read(goalRepositoryProvider);
+      repo.softDeleteGoal(goal.id);
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Цель удалена: ${goal.title}'),
+            action: SnackBarAction(
+              label: 'Отменить',
+              onPressed: () => repo.restoreGoal(goal.id),
+            ),
+          ),
+        );
+    }
 
     return Card(
       margin: EdgeInsets.zero,
@@ -81,76 +102,50 @@ class _GoalTile extends StatelessWidget {
                 )
               : null,
         ),
-
         subtitle: goal.isBoss && !done
             ? Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: hpFrac,
-                    minHeight: 6,
-                    color: theme.colorScheme.error,
-                    backgroundColor: theme.colorScheme.error.withValues(
-                      alpha: 0.15,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: hpFrac, end: hpFrac),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 6,
+                      color: theme.colorScheme.error,
+                      backgroundColor: theme.colorScheme.error.withValues(
+                        alpha: 0.15,
+                      ),
                     ),
                   ),
                 ),
               )
             : Text(done ? 'Завершено' : 'Цель'),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            switch (value) {
+              case 'open':
+                context.push('/goals/${goal.id}');
+              case 'edit':
+                showDialog(
+                  context: context,
+                  builder: (_) => GoalEditDialog(goal: goal),
+                );
+              case 'delete':
+                deleteWithUndo();
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(value: 'open', child: Text('Открыть')),
+            const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
+            const PopupMenuItem(value: 'delete', child: Text('Удалить')),
+          ],
+        ),
         onTap: () => context.push('/goals/${goal.id}'),
       ),
     );
   }
-}
-
-Future<void> _showAddGoal(BuildContext context, WidgetRef ref) async {
-  final controller = TextEditingController();
-  var isBoss = false;
-  final created = await showDialog<bool>(
-    context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: const Text('Новая цель'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Название',
-                hintText: 'Например: Пробежать марафон',
-              ),
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Босс'),
-              subtitle: const Text('Полоса HP и бонус за победу'),
-              value: isBoss,
-              onChanged: (v) => setState(() => isBoss = v),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Отмена'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Создать'),
-          ),
-        ],
-      ),
-    ),
-  );
-
-  if (created == true && controller.text.trim().isNotEmpty) {
-    await ref
-        .read(goalRepositoryProvider)
-        .createGoal(title: controller.text.trim(), isBoss: isBoss);
-  }
-  controller.dispose();
 }

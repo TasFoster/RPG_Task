@@ -777,6 +777,17 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _archivedAtMeta = const VerificationMeta(
+    'archivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
+    'archived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -806,6 +817,7 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
     completedAt,
     xpAwarded,
     goldAwarded,
+    archivedAt,
     createdAt,
   ];
   @override
@@ -908,6 +920,12 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         ),
       );
     }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+        _archivedAtMeta,
+        archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -987,6 +1005,10 @@ class $TasksTable extends Tasks with TableInfo<$TasksTable, Task> {
         DriftSqlType.int,
         data['${effectivePrefix}gold_awarded'],
       )!,
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}archived_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1021,6 +1043,7 @@ class Task extends DataClass implements Insertable<Task> {
   final DateTime? completedAt;
   final int xpAwarded;
   final int goldAwarded;
+  final DateTime? archivedAt;
   final DateTime createdAt;
   const Task({
     required this.id,
@@ -1038,6 +1061,7 @@ class Task extends DataClass implements Insertable<Task> {
     this.completedAt,
     required this.xpAwarded,
     required this.goldAwarded,
+    this.archivedAt,
     required this.createdAt,
   });
   @override
@@ -1074,6 +1098,9 @@ class Task extends DataClass implements Insertable<Task> {
     }
     map['xp_awarded'] = Variable<int>(xpAwarded);
     map['gold_awarded'] = Variable<int>(goldAwarded);
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<DateTime>(archivedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -1105,6 +1132,9 @@ class Task extends DataClass implements Insertable<Task> {
           : Value(completedAt),
       xpAwarded: Value(xpAwarded),
       goldAwarded: Value(goldAwarded),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -1134,6 +1164,7 @@ class Task extends DataClass implements Insertable<Task> {
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       xpAwarded: serializer.fromJson<int>(json['xpAwarded']),
       goldAwarded: serializer.fromJson<int>(json['goldAwarded']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -1160,6 +1191,7 @@ class Task extends DataClass implements Insertable<Task> {
       'completedAt': serializer.toJson<DateTime?>(completedAt),
       'xpAwarded': serializer.toJson<int>(xpAwarded),
       'goldAwarded': serializer.toJson<int>(goldAwarded),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -1180,6 +1212,7 @@ class Task extends DataClass implements Insertable<Task> {
     Value<DateTime?> completedAt = const Value.absent(),
     int? xpAwarded,
     int? goldAwarded,
+    Value<DateTime?> archivedAt = const Value.absent(),
     DateTime? createdAt,
   }) => Task(
     id: id ?? this.id,
@@ -1197,6 +1230,7 @@ class Task extends DataClass implements Insertable<Task> {
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
     xpAwarded: xpAwarded ?? this.xpAwarded,
     goldAwarded: goldAwarded ?? this.goldAwarded,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     createdAt: createdAt ?? this.createdAt,
   );
   Task copyWithCompanion(TasksCompanion data) {
@@ -1226,6 +1260,9 @@ class Task extends DataClass implements Insertable<Task> {
       goldAwarded: data.goldAwarded.present
           ? data.goldAwarded.value
           : this.goldAwarded,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -1248,6 +1285,7 @@ class Task extends DataClass implements Insertable<Task> {
           ..write('completedAt: $completedAt, ')
           ..write('xpAwarded: $xpAwarded, ')
           ..write('goldAwarded: $goldAwarded, ')
+          ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -1270,6 +1308,7 @@ class Task extends DataClass implements Insertable<Task> {
     completedAt,
     xpAwarded,
     goldAwarded,
+    archivedAt,
     createdAt,
   );
   @override
@@ -1291,6 +1330,7 @@ class Task extends DataClass implements Insertable<Task> {
           other.completedAt == this.completedAt &&
           other.xpAwarded == this.xpAwarded &&
           other.goldAwarded == this.goldAwarded &&
+          other.archivedAt == this.archivedAt &&
           other.createdAt == this.createdAt);
 }
 
@@ -1310,6 +1350,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
   final Value<DateTime?> completedAt;
   final Value<int> xpAwarded;
   final Value<int> goldAwarded;
+  final Value<DateTime?> archivedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const TasksCompanion({
@@ -1328,6 +1369,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.completedAt = const Value.absent(),
     this.xpAwarded = const Value.absent(),
     this.goldAwarded = const Value.absent(),
+    this.archivedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1347,6 +1389,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     this.completedAt = const Value.absent(),
     this.xpAwarded = const Value.absent(),
     this.goldAwarded = const Value.absent(),
+    this.archivedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1367,6 +1410,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Expression<DateTime>? completedAt,
     Expression<int>? xpAwarded,
     Expression<int>? goldAwarded,
+    Expression<DateTime>? archivedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -1386,6 +1430,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       if (completedAt != null) 'completed_at': completedAt,
       if (xpAwarded != null) 'xp_awarded': xpAwarded,
       if (goldAwarded != null) 'gold_awarded': goldAwarded,
+      if (archivedAt != null) 'archived_at': archivedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1407,6 +1452,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
     Value<DateTime?>? completedAt,
     Value<int>? xpAwarded,
     Value<int>? goldAwarded,
+    Value<DateTime?>? archivedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -1426,6 +1472,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
       completedAt: completedAt ?? this.completedAt,
       xpAwarded: xpAwarded ?? this.xpAwarded,
       goldAwarded: goldAwarded ?? this.goldAwarded,
+      archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1483,6 +1530,9 @@ class TasksCompanion extends UpdateCompanion<Task> {
     if (goldAwarded.present) {
       map['gold_awarded'] = Variable<int>(goldAwarded.value);
     }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<DateTime>(archivedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1510,6 +1560,7 @@ class TasksCompanion extends UpdateCompanion<Task> {
           ..write('completedAt: $completedAt, ')
           ..write('xpAwarded: $xpAwarded, ')
           ..write('goldAwarded: $goldAwarded, ')
+          ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -9805,6 +9856,17 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _archivedAtMeta = const VerificationMeta(
+    'archivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
+    'archived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -9828,6 +9890,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
     axisId,
     mood,
     pinned,
+    archivedAt,
     createdAt,
   ];
   @override
@@ -9895,6 +9958,12 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         pinned.isAcceptableOrUnknown(data['pinned']!, _pinnedMeta),
       );
     }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+        _archivedAtMeta,
+        archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -9946,6 +10015,10 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, Note> {
         DriftSqlType.bool,
         data['${effectivePrefix}pinned'],
       )!,
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}archived_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -9969,6 +10042,7 @@ class Note extends DataClass implements Insertable<Note> {
   final String? axisId;
   final String? mood;
   final bool pinned;
+  final DateTime? archivedAt;
   final DateTime createdAt;
   const Note({
     required this.id,
@@ -9980,6 +10054,7 @@ class Note extends DataClass implements Insertable<Note> {
     this.axisId,
     this.mood,
     required this.pinned,
+    this.archivedAt,
     required this.createdAt,
   });
   @override
@@ -9998,6 +10073,9 @@ class Note extends DataClass implements Insertable<Note> {
       map['mood'] = Variable<String>(mood);
     }
     map['pinned'] = Variable<bool>(pinned);
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<DateTime>(archivedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -10015,6 +10093,9 @@ class Note extends DataClass implements Insertable<Note> {
           : Value(axisId),
       mood: mood == null && nullToAbsent ? const Value.absent() : Value(mood),
       pinned: Value(pinned),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
       createdAt: Value(createdAt),
     );
   }
@@ -10034,6 +10115,7 @@ class Note extends DataClass implements Insertable<Note> {
       axisId: serializer.fromJson<String?>(json['axisId']),
       mood: serializer.fromJson<String?>(json['mood']),
       pinned: serializer.fromJson<bool>(json['pinned']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -10050,6 +10132,7 @@ class Note extends DataClass implements Insertable<Note> {
       'axisId': serializer.toJson<String?>(axisId),
       'mood': serializer.toJson<String?>(mood),
       'pinned': serializer.toJson<bool>(pinned),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -10064,6 +10147,7 @@ class Note extends DataClass implements Insertable<Note> {
     Value<String?> axisId = const Value.absent(),
     Value<String?> mood = const Value.absent(),
     bool? pinned,
+    Value<DateTime?> archivedAt = const Value.absent(),
     DateTime? createdAt,
   }) => Note(
     id: id ?? this.id,
@@ -10075,6 +10159,7 @@ class Note extends DataClass implements Insertable<Note> {
     axisId: axisId.present ? axisId.value : this.axisId,
     mood: mood.present ? mood.value : this.mood,
     pinned: pinned ?? this.pinned,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     createdAt: createdAt ?? this.createdAt,
   );
   Note copyWithCompanion(NotesCompanion data) {
@@ -10088,6 +10173,9 @@ class Note extends DataClass implements Insertable<Note> {
       axisId: data.axisId.present ? data.axisId.value : this.axisId,
       mood: data.mood.present ? data.mood.value : this.mood,
       pinned: data.pinned.present ? data.pinned.value : this.pinned,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -10104,6 +10192,7 @@ class Note extends DataClass implements Insertable<Note> {
           ..write('axisId: $axisId, ')
           ..write('mood: $mood, ')
           ..write('pinned: $pinned, ')
+          ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -10120,6 +10209,7 @@ class Note extends DataClass implements Insertable<Note> {
     axisId,
     mood,
     pinned,
+    archivedAt,
     createdAt,
   );
   @override
@@ -10135,6 +10225,7 @@ class Note extends DataClass implements Insertable<Note> {
           other.axisId == this.axisId &&
           other.mood == this.mood &&
           other.pinned == this.pinned &&
+          other.archivedAt == this.archivedAt &&
           other.createdAt == this.createdAt);
 }
 
@@ -10148,6 +10239,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
   final Value<String?> axisId;
   final Value<String?> mood;
   final Value<bool> pinned;
+  final Value<DateTime?> archivedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const NotesCompanion({
@@ -10160,6 +10252,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     this.axisId = const Value.absent(),
     this.mood = const Value.absent(),
     this.pinned = const Value.absent(),
+    this.archivedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -10173,6 +10266,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     this.axisId = const Value.absent(),
     this.mood = const Value.absent(),
     this.pinned = const Value.absent(),
+    this.archivedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
@@ -10186,6 +10280,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Expression<String>? axisId,
     Expression<String>? mood,
     Expression<bool>? pinned,
+    Expression<DateTime>? archivedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -10199,6 +10294,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
       if (axisId != null) 'axis_id': axisId,
       if (mood != null) 'mood': mood,
       if (pinned != null) 'pinned': pinned,
+      if (archivedAt != null) 'archived_at': archivedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -10214,6 +10310,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
     Value<String?>? axisId,
     Value<String?>? mood,
     Value<bool>? pinned,
+    Value<DateTime?>? archivedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
@@ -10227,6 +10324,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
       axisId: axisId ?? this.axisId,
       mood: mood ?? this.mood,
       pinned: pinned ?? this.pinned,
+      archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -10262,6 +10360,9 @@ class NotesCompanion extends UpdateCompanion<Note> {
     if (pinned.present) {
       map['pinned'] = Variable<bool>(pinned.value);
     }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<DateTime>(archivedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -10283,6 +10384,7 @@ class NotesCompanion extends UpdateCompanion<Note> {
           ..write('axisId: $axisId, ')
           ..write('mood: $mood, ')
           ..write('pinned: $pinned, ')
+          ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -11047,6 +11149,7 @@ typedef $$TasksTableCreateCompanionBuilder =
       Value<DateTime?> completedAt,
       Value<int> xpAwarded,
       Value<int> goldAwarded,
+      Value<DateTime?> archivedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -11067,6 +11170,7 @@ typedef $$TasksTableUpdateCompanionBuilder =
       Value<DateTime?> completedAt,
       Value<int> xpAwarded,
       Value<int> goldAwarded,
+      Value<DateTime?> archivedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -11170,6 +11274,11 @@ class $$TasksTableFilterComposer extends Composer<_$AppDatabase, $TasksTable> {
 
   ColumnFilters<int> get goldAwarded => $composableBuilder(
     column: $table.goldAwarded,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11281,6 +11390,11 @@ class $$TasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -11372,6 +11486,11 @@ class $$TasksTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -11442,6 +11561,7 @@ class $$TasksTableTableManager
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<int> xpAwarded = const Value.absent(),
                 Value<int> goldAwarded = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion(
@@ -11460,6 +11580,7 @@ class $$TasksTableTableManager
                 completedAt: completedAt,
                 xpAwarded: xpAwarded,
                 goldAwarded: goldAwarded,
+                archivedAt: archivedAt,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -11480,6 +11601,7 @@ class $$TasksTableTableManager
                 Value<DateTime?> completedAt = const Value.absent(),
                 Value<int> xpAwarded = const Value.absent(),
                 Value<int> goldAwarded = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TasksCompanion.insert(
@@ -11498,6 +11620,7 @@ class $$TasksTableTableManager
                 completedAt: completedAt,
                 xpAwarded: xpAwarded,
                 goldAwarded: goldAwarded,
+                archivedAt: archivedAt,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -16224,6 +16347,7 @@ typedef $$NotesTableCreateCompanionBuilder =
       Value<String?> axisId,
       Value<String?> mood,
       Value<bool> pinned,
+      Value<DateTime?> archivedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -16238,6 +16362,7 @@ typedef $$NotesTableUpdateCompanionBuilder =
       Value<String?> axisId,
       Value<String?> mood,
       Value<bool> pinned,
+      Value<DateTime?> archivedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -16309,6 +16434,11 @@ class $$NotesTableFilterComposer extends Composer<_$AppDatabase, $NotesTable> {
 
   ColumnFilters<bool> get pinned => $composableBuilder(
     column: $table.pinned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16390,6 +16520,11 @@ class $$NotesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -16451,6 +16586,11 @@ class $$NotesTableAnnotationComposer
 
   GeneratedColumn<bool> get pinned =>
       $composableBuilder(column: $table.pinned, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -16516,6 +16656,7 @@ class $$NotesTableTableManager
                 Value<String?> axisId = const Value.absent(),
                 Value<String?> mood = const Value.absent(),
                 Value<bool> pinned = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotesCompanion(
@@ -16528,6 +16669,7 @@ class $$NotesTableTableManager
                 axisId: axisId,
                 mood: mood,
                 pinned: pinned,
+                archivedAt: archivedAt,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -16542,6 +16684,7 @@ class $$NotesTableTableManager
                 Value<String?> axisId = const Value.absent(),
                 Value<String?> mood = const Value.absent(),
                 Value<bool> pinned = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotesCompanion.insert(
@@ -16554,6 +16697,7 @@ class $$NotesTableTableManager
                 axisId: axisId,
                 mood: mood,
                 pinned: pinned,
+                archivedAt: archivedAt,
                 createdAt: createdAt,
                 rowid: rowid,
               ),

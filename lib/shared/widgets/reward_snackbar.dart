@@ -16,7 +16,17 @@ void showRewardSnackBar(BuildContext context, RewardResult reward) {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
+            // Появление с «вспышкой»: масштаб + поворот иконки награды.
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 450),
+              curve: Curves.elasticOut,
+              builder: (context, value, child) => Transform.rotate(
+                angle: (1 - value) * 0.8,
+                child: Transform.scale(scale: value, child: child),
+              ),
+              child: const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

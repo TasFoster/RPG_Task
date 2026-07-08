@@ -26,6 +26,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
   late final TextEditingController _titleController;
   late final TextEditingController _bodyController;
   late final TabController _tabController;
+  final _bodyFocus = FocusNode();
   late String? _axisId;
   late String? _mood;
   late bool _pinned;
@@ -45,6 +46,10 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
       vsync: this,
       initialIndex: n != null ? 1 : 0,
     );
+    // Панель форматирования показывается только на вкладке «Правка».
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
     _axisId = n?.axisId;
     _mood = n?.mood;
     _pinned = n?.pinned ?? false;
@@ -55,7 +60,63 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
     _titleController.dispose();
     _bodyController.dispose();
     _tabController.dispose();
+    _bodyFocus.dispose();
     super.dispose();
+  }
+
+  // ---- Быстрые инструменты форматирования Markdown ----
+
+  /// Оборачивает выделение в [prefix]…[suffix] (курсор — внутрь, если пусто).
+  void _wrapSelection(String prefix, [String? suffix]) {
+    suffix ??= prefix;
+    final text = _bodyController.text;
+    var sel = _bodyController.selection;
+    if (!sel.isValid) sel = TextSelection.collapsed(offset: text.length);
+    final selected = sel.textInside(text);
+    _bodyController.value = TextEditingValue(
+      text: sel.textBefore(text) + prefix + selected + suffix + sel.textAfter(text),
+      selection: selected.isEmpty
+          ? TextSelection.collapsed(offset: sel.start + prefix.length)
+          : TextSelection(
+              baseOffset: sel.start + prefix.length,
+              extentOffset: sel.end + prefix.length,
+            ),
+    );
+    _bodyFocus.requestFocus();
+  }
+
+  /// Ставит [prefix] в начало каждой строки, попавшей в выделение.
+  void _prefixLines(String prefix) {
+    final text = _bodyController.text;
+    var sel = _bodyController.selection;
+    if (!sel.isValid) sel = TextSelection.collapsed(offset: text.length);
+    final lineStart =
+        sel.start <= 0 ? 0 : text.lastIndexOf('\n', sel.start - 1) + 1;
+    final segment = text.substring(lineStart, sel.end);
+    final lines = segment.split('\n');
+    final newSegment = [
+      for (final line in lines)
+        // Пустые строки внутри многострочного выделения не префиксуем.
+        (line.isEmpty && lines.length > 1) ? line : '$prefix$line',
+    ].join('\n');
+    final delta = newSegment.length - segment.length;
+    _bodyController.value = TextEditingValue(
+      text: text.substring(0, lineStart) + newSegment + text.substring(sel.end),
+      selection: TextSelection.collapsed(offset: sel.end + delta),
+    );
+    _bodyFocus.requestFocus();
+  }
+
+  /// Вставляет блок [snippet] в позицию курсора.
+  void _insertBlock(String snippet) {
+    final text = _bodyController.text;
+    var sel = _bodyController.selection;
+    if (!sel.isValid) sel = TextSelection.collapsed(offset: text.length);
+    _bodyController.value = TextEditingValue(
+      text: sel.textBefore(text) + snippet + sel.textAfter(text),
+      selection: TextSelection.collapsed(offset: sel.start + snippet.length),
+    );
+    _bodyFocus.requestFocus();
   }
 
   Future<void> _save() async {
@@ -124,6 +185,101 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
         controller: _tabController,
         children: [_buildEdit(context), _buildPreview(context)],
       ),
+      // Панель быстрого форматирования — только на вкладке «Правка».
+      bottomNavigationBar:
+          _tabController.index == 0 ? _buildFormatToolbar(context) : null,
+    );
+  }
+
+  Widget _buildFormatToolbar(BuildContext context) {
+    final theme = Theme.of(context);
+
+    Widget btn({
+      required IconData icon,
+      required String tooltip,
+      required VoidCallback onTap,
+    }) {
+      return IconButton(
+        icon: Icon(icon, size: 20),
+        tooltip: tooltip,
+        visualDensity: VisualDensity.compact,
+        onPressed: onTap,
+      );
+    }
+
+    return Material(
+      color: theme.colorScheme.surfaceContainerHigh,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 44,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                btn(
+                  icon: Icons.format_bold,
+                  tooltip: 'Жирный',
+                  onTap: () => _wrapSelection('**'),
+                ),
+                btn(
+                  icon: Icons.format_italic,
+                  tooltip: 'Курсив',
+                  onTap: () => _wrapSelection('*'),
+                ),
+                btn(
+                  icon: Icons.strikethrough_s,
+                  tooltip: 'Зачёркнутый',
+                  onTap: () => _wrapSelection('~~'),
+                ),
+                const VerticalDivider(width: 8, indent: 10, endIndent: 10),
+                btn(
+                  icon: Icons.title,
+                  tooltip: 'Заголовок',
+                  onTap: () => _prefixLines('## '),
+                ),
+                btn(
+                  icon: Icons.format_list_bulleted,
+                  tooltip: 'Список',
+                  onTap: () => _prefixLines('- '),
+                ),
+                btn(
+                  icon: Icons.format_list_numbered,
+                  tooltip: 'Нумерованный список',
+                  onTap: () => _prefixLines('1. '),
+                ),
+                btn(
+                  icon: Icons.check_box_outlined,
+                  tooltip: 'Чек-лист',
+                  onTap: () => _prefixLines('- [ ] '),
+                ),
+                btn(
+                  icon: Icons.format_quote,
+                  tooltip: 'Цитата',
+                  onTap: () => _prefixLines('> '),
+                ),
+                const VerticalDivider(width: 8, indent: 10, endIndent: 10),
+                btn(
+                  icon: Icons.code,
+                  tooltip: 'Код',
+                  onTap: () => _wrapSelection('`'),
+                ),
+                btn(
+                  icon: Icons.link,
+                  tooltip: 'Ссылка',
+                  onTap: () => _wrapSelection('[', '](https://)'),
+                ),
+                btn(
+                  icon: Icons.horizontal_rule,
+                  tooltip: 'Разделитель',
+                  onTap: () => _insertBlock('\n\n---\n\n'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -144,6 +300,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
         const Divider(),
         TextField(
           controller: _bodyController,
+          focusNode: _bodyFocus,
           maxLines: null,
           minLines: 8,
           textCapitalization: TextCapitalization.sentences,

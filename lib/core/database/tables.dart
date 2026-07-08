@@ -44,6 +44,9 @@ class Tasks extends Table with _SyncColumns {
   DateTimeColumn get completedAt => dateTime().nullable()();
   IntColumn get xpAwarded => integer().withDefault(const Constant(0))();
   IntColumn get goldAwarded => integer().withDefault(const Constant(0))();
+  // Архив: null — активная задача, иначе — момент архивирования.
+  // Nullable-колонка безопасна для синхронизации со старыми клиентами.
+  DateTimeColumn get archivedAt => dateTime().nullable()();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
 
@@ -139,6 +142,8 @@ class Notes extends Table with _SyncColumns {
   TextColumn get axisId => text().nullable().references(SkillAxes, #id)();
   TextColumn get mood => text().nullable()(); // эмодзи настроения
   BoolColumn get pinned => boolean().withDefault(const Constant(false))();
+  // Архив: null — активная заметка, иначе — момент архивирования.
+  DateTimeColumn get archivedAt => dateTime().nullable()();
   DateTimeColumn get createdAt =>
       dateTime().withDefault(currentDateAndTime)();
 

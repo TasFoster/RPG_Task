@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_provider.dart';
@@ -8,8 +7,6 @@ import '../../../core/gamification/gamification_engine.dart';
 import '../../../core/gamification/reward_service.dart';
 import '../../../core/models/enums.dart';
 import 'sleep_cycle.dart';
-
-const _uuid = Uuid();
 
 /// Доступ к записям сна + начисление опыта в ось «Здоровье».
 class SleepRepository {
@@ -55,16 +52,33 @@ class SleepRepository {
   }) async {
     final dur = sleepDuration(bed, wake);
     final xp = sleepXp(dur);
-    final id = _uuid.v4();
+    final key = dateKeyFor(wake);
+    // Стабильный id по натуральному ключу (дата подъёма): разные устройства
+    // создают ОДНУ и ту же строку — синхронизация не плодит дубликаты.
+    final id = 'sleep_$key';
 
-    await db.into(db.sleepLogs).insert(
+    // Если запись за эту дату уже есть (в т.ч. со старым случайным id) —
+    // обновляем её вместо дубликата; опыт повторно не начисляем.
+    final existing = await (db.select(db.sleepLogs)
+          ..where((s) => s.dateKey.equals(key) & s.isDeleted.equals(false)))
+        .get();
+    if (existing.isNotEmpty) {
+      await updateSleep(
+          id: existing.first.id, bed: bed, wake: wake, note: note);
+      return const RewardResult(xp: 0, gold: 0, gems: 0);
+    }
+
+    await db.into(db.sleepLogs).insertOnConflictUpdate(
           SleepLogsCompanion.insert(
             id: id,
-            dateKey: dateKeyFor(wake),
+            dateKey: key,
             bedTime: bed,
             wakeTime: wake,
             note: Value(note),
             xpAwarded: Value(xp),
+            isDeleted: const Value(false),
+            dirty: const Value(true),
+            updatedAt: Value(DateTime.now()),
           ),
         );
 

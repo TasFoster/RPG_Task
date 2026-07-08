@@ -103,6 +103,28 @@ class _HabitTile extends ConsumerWidget {
       }
     }
 
+    // Отметка задним числом: забыл или не успел отметить вчера.
+    Future<void> completeYesterday() async {
+      final yesterday = DateTime.now().subtract(const Duration(days: 1));
+      final reward = await ref
+          .read(rewardServiceProvider)
+          .completeHabitOn(habit, yesterday);
+      if (reward != null) {
+        await ref.read(codexRepositoryProvider).grantLoot();
+        await updateHomeWidgets(ref.read(databaseProvider));
+      }
+      if (!context.mounted) return;
+      if (reward == null) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(content: Text('За вчера уже отмечено')),
+          );
+      } else {
+        showRewardSnackBar(context, reward);
+      }
+    }
+
     return Dismissible(
       key: ValueKey(habit.id),
       direction: DismissDirection.endToStart,
@@ -118,8 +140,14 @@ class _HabitTile extends ConsumerWidget {
         margin: EdgeInsets.zero,
         child: ListTile(
           leading: IconButton(
-            icon: Icon(
-              doneToday ? Icons.check_circle : Icons.radio_button_unchecked,
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
+              child: Icon(
+                doneToday ? Icons.check_circle : Icons.radio_button_unchecked,
+                key: ValueKey(doneToday),
+              ),
             ),
             color: doneToday ? theme.colorScheme.primary : null,
             onPressed: doneToday ? null : complete,
@@ -161,7 +189,30 @@ class _HabitTile extends ConsumerWidget {
               ),
             ],
           ),
-          trailing: _StreakBadge(streak: habit.streakCurrent),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _StreakBadge(streak: habit.streakCurrent),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'yesterday':
+                      completeYesterday();
+                    case 'delete':
+                      ref.read(habitRepositoryProvider).softDelete(habit.id);
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'yesterday',
+                    child: Text('Отметить вчера'),
+                  ),
+                  const PopupMenuItem(value: 'delete', child: Text('Удалить')),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

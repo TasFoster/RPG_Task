@@ -1,14 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/gamification/gamification_engine.dart';
 import '../../../core/gamification/reward_service.dart';
 import '../../../core/models/enums.dart';
-
-const _uuid = Uuid();
 
 /// Квест с вычисленным на текущий момент прогрессом.
 class QuestView {
@@ -57,15 +54,20 @@ class QuestRepository {
 
     if (existing.isEmpty) {
       for (final t in _dailyTemplates) {
+        // Стабильный id по натуральному ключу (дата+тип): разные устройства
+        // создают одинаковые строки — синхронизация не плодит дубликаты.
+        // insertOrIgnore: строка могла уже прийти из облака между проверкой
+        // и вставкой.
         await db.into(db.dailyQuests).insert(
               DailyQuestsCompanion.insert(
-                id: _uuid.v4(),
+                id: 'quest_${key}_${t.type.index}',
                 dateKey: key,
                 type: t.type,
                 target: t.target,
                 rewardXp: t.rewardXp,
                 rewardGold: t.rewardGold,
               ),
+              mode: InsertMode.insertOrIgnore,
             );
       }
     }

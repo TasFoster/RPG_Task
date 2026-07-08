@@ -126,8 +126,12 @@ class SyncController extends Notifier<SyncState> {
     try {
       final db = ref.read(databaseProvider);
       await _ensureSameUser(db);
-      await _pushAll(db);
-      await _pullAll(db);
+      final pushed = await _pushAll(db);
+      final (received, applied) = await _pullAll(db);
+      if (kDebugMode) {
+        debugPrint(
+            'Sync OK: отправлено $pushed, получено $received, применено $applied');
+      }
       state = SyncState(
           status: SyncStatus.success, lastSyncedAt: DateTime.now());
     } catch (e, st) {
@@ -177,8 +181,10 @@ class SyncController extends Notifier<SyncState> {
     }
   }
 
-  Future<void> _pushAll(AppDatabase db) async {
+  /// Возвращает число отправленных строк (для отладочного лога).
+  Future<int> _pushAll(AppDatabase db) async {
     final userId = _client.auth.currentUser!.id;
+    var pushed = 0;
     for (final entity in syncEntities(db)) {
       final dirty = await entity.dirtyRows(db);
       if (dirty.isEmpty) continue;
@@ -202,10 +208,13 @@ class SyncController extends Notifier<SyncState> {
           .from(_kRemoteTable)
           .upsert(payloads, onConflict: 'user_id,table_name,row_id');
       await entity.clearDirty(db, ids);
+      pushed += ids.length;
     }
+    return pushed;
   }
 
-  Future<void> _pullAll(AppDatabase db) async {
+  /// Возвращает (получено строк, применено строк) — для отладочного лога.
+  Future<(int, int)> _pullAll(AppDatabase db) async {
     final prefs = await SharedPreferences.getInstance();
     final lastPull = prefs.getString(_kLastPullKey);
 
@@ -224,10 +233,11 @@ class SyncController extends Notifier<SyncState> {
       query = query.gt('updated_at', since);
     }
     final remote = await query;
-    if (remote.isEmpty) return;
+    if (remote.isEmpty) return (0, 0);
 
     final byName = {for (final e in syncEntities(db)) e.name: e};
     String maxUpdated = lastPull ?? '';
+    var applied = 0;
 
     // Применяем в порядке зависимостей (как в syncEntities).
     for (final entity in syncEntities(db)) {
@@ -243,6 +253,7 @@ class SyncController extends Notifier<SyncState> {
           // Last-write-wins: применяем только если облачная версия новее.
           if (localSeconds == null || remoteSeconds > localSeconds) {
             await entity.applyRemote(db, data);
+            applied++;
           }
         } catch (e, st) {
           if (kDebugMode) {
@@ -265,6 +276,7 @@ class SyncController extends Notifier<SyncState> {
     if (maxUpdated.isNotEmpty) {
       await prefs.setString(_kLastPullKey, maxUpdated);
     }
+    return (remote.length, applied);
   }
 }
 

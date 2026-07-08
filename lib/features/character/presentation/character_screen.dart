@@ -90,9 +90,15 @@ class CharacterScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 12,
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0, end: progress),
+                            duration: const Duration(milliseconds: 700),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, _) =>
+                                LinearProgressIndicator(
+                              value: value,
+                              minHeight: 12,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -169,6 +175,19 @@ class CharacterScreen extends ConsumerWidget {
                       ),
                       const Divider(height: 1),
                       ListTile(
+                        leading: const Icon(
+                          Icons.groups,
+                          color: AppTheme.guildGold,
+                        ),
+                        title: const Text('Гильдии'),
+                        subtitle: const Text(
+                          'Объединяйтесь с друзьями и коллегами',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/guilds'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
                         leading: Icon(
                           Icons.emoji_events,
                           color: theme.colorScheme.tertiary,
@@ -211,6 +230,19 @@ class CharacterScreen extends ConsumerWidget {
                         subtitle: const Text('Циклы сна и циркадные ритмы'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/sleep'),
+                      ),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: Icon(
+                          Icons.receipt_long,
+                          color: theme.colorScheme.secondary,
+                        ),
+                        title: const Text('Журнал наград'),
+                        subtitle: const Text(
+                          'История начислений XP, золота и кристаллов',
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/rewards-log'),
                       ),
                       const Divider(height: 1),
                       ListTile(
@@ -259,10 +291,15 @@ class _CurrencyCard extends StatelessWidget {
             const SizedBox(height: 8),
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(
-                '$value',
-                maxLines: 1,
-                style: theme.textTheme.titleLarge,
+              // Плавная «прокрутка» числа при изменении валюты.
+              child: TweenAnimationBuilder<int>(
+                tween: IntTween(begin: value, end: value),
+                duration: const Duration(milliseconds: 500),
+                builder: (context, animated, _) => Text(
+                  '$animated',
+                  maxLines: 1,
+                  style: theme.textTheme.titleLarge,
+                ),
               ),
             ),
             Text(label, style: theme.textTheme.bodySmall),

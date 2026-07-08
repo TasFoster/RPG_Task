@@ -144,10 +144,11 @@ class SeasonService {
 
     final newPrestige = profile.prestige + 1;
 
-    // Запись в архив сезонов.
-    await db.into(db.seasons).insert(
+    // Запись в архив сезонов. Стабильный id по натуральному ключу
+    // (год+месяц): устройства не плодят дубликаты при синхронизации.
+    await db.into(db.seasons).insertOnConflictUpdate(
           SeasonsCompanion.insert(
-            id: _uuid.v4(),
+            id: 'season_${year}_$month',
             year: year,
             month: month,
             xpEarned: Value(xpEarned),

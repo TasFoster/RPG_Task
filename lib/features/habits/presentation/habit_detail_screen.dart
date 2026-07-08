@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/database/database_provider.dart';
+import '../../../core/gamification/reward_service.dart';
+import '../../../shared/widgets/reward_snackbar.dart';
+import '../../codex/data/codex_repository.dart';
+import '../../widgets/home_widgets_service.dart';
 import '../data/habit_repository.dart';
 import 'habit_heatmap_card.dart';
 
@@ -52,6 +57,7 @@ class HabitDetailScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              _BackfillYesterdayCard(habitId: habitId),
               HabitHeatmapCard(
                 habitId: habitId,
                 title: 'Выполнения',
@@ -60,6 +66,55 @@ class HabitDetailScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Кнопка «Отметить вчера»: видна, только если вчера ещё не отмечено.
+class _BackfillYesterdayCard extends ConsumerWidget {
+  final String habitId;
+  const _BackfillYesterdayCard({required this.habitId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final heatmap = ref.watch(habitHeatmapProvider(habitId)).value;
+    if (heatmap == null) return const SizedBox.shrink();
+
+    final yesterday = HabitRepository.dayOnly(
+      DateTime.now().subtract(const Duration(days: 1)),
+    );
+    if ((heatmap[yesterday] ?? 0) > 0) return const SizedBox.shrink();
+
+    Future<void> completeYesterday() async {
+      final habit =
+          await ref.read(habitRepositoryProvider).habitById(habitId);
+      if (habit == null) return;
+      final reward = await ref
+          .read(rewardServiceProvider)
+          .completeHabitOn(habit, yesterday);
+      if (reward != null) {
+        await ref.read(codexRepositoryProvider).grantLoot();
+        await updateHomeWidgets(ref.read(databaseProvider));
+      }
+      if (context.mounted && reward != null) {
+        showRewardSnackBar(context, reward);
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      child: Card(
+        child: ListTile(
+          leading: Icon(Icons.history, color: theme.colorScheme.primary),
+          title: const Text('Забыли отметить вчера?'),
+          subtitle: const Text('Отметка задним числом сохранит серию'),
+          trailing: FilledButton.tonal(
+            onPressed: completeYesterday,
+            child: const Text('Отметить'),
+          ),
+        ),
       ),
     );
   }

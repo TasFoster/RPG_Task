@@ -19,6 +19,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   String? _filterAxisId; // null — все оси
+  bool _showArchive = false;
 
   @override
   void dispose() {
@@ -34,19 +35,34 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final notesAsync = ref.watch(notesStreamProvider);
+    final notesAsync = ref.watch(
+      _showArchive ? archivedNotesStreamProvider : notesStreamProvider,
+    );
     final axesAsync = ref.watch(axesStreamProvider);
     final axesById = {
       for (final a in axesAsync.value ?? const <SkillAxe>[]) a.id: a,
     };
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Дневник')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openEditor,
-        icon: const Icon(Icons.add),
-        label: const Text('Запись'),
+      appBar: AppBar(
+        title: Text(_showArchive ? 'Архив дневника' : 'Дневник'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _showArchive ? Icons.inventory_2 : Icons.inventory_2_outlined,
+            ),
+            tooltip: _showArchive ? 'К записям' : 'Архив',
+            onPressed: () => setState(() => _showArchive = !_showArchive),
+          ),
+        ],
       ),
+      floatingActionButton: _showArchive
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _openEditor,
+              icon: const Icon(Icons.add),
+              label: const Text('Запись'),
+            ),
       body: Column(
         children: [
           Padding(
@@ -117,7 +133,10 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                 }).toList();
 
                 if (filtered.isEmpty) {
-                  return _EmptyState(hasNotes: notes.isNotEmpty);
+                  return _EmptyState(
+                    hasNotes: notes.isNotEmpty,
+                    archive: _showArchive,
+                  );
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.fromLTRB(12, 4, 12, 96),
@@ -127,6 +146,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     final note = filtered[i];
                     return _NoteTile(
                       note: note,
+                      archived: _showArchive,
                       onTap: () => _openEditor(note),
                     );
                   },
@@ -142,8 +162,13 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 
 class _NoteTile extends ConsumerWidget {
   final Note note;
+  final bool archived;
   final VoidCallback onTap;
-  const _NoteTile({required this.note, required this.onTap});
+  const _NoteTile({
+    required this.note,
+    required this.onTap,
+    this.archived = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -161,6 +186,21 @@ class _NoteTile extends ConsumerWidget {
           action: SnackBarAction(
             label: 'Отменить',
             onPressed: () => repo.restore(note.id),
+          ),
+        ));
+    }
+
+    void archiveWithUndo() {
+      final messenger = ScaffoldMessenger.of(context);
+      final repo = ref.read(noteRepositoryProvider);
+      repo.archive(note.id);
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(
+          content: Text('В архиве: $title'),
+          action: SnackBarAction(
+            label: 'Отменить',
+            onPressed: () => repo.unarchive(note.id),
           ),
         ));
     }
@@ -203,16 +243,31 @@ class _NoteTile extends ConsumerWidget {
                   ref.read(noteRepositoryProvider).togglePin(note);
                 case 'edit':
                   onTap();
+                case 'archive':
+                  archiveWithUndo();
+                case 'unarchive':
+                  ref.read(noteRepositoryProvider).unarchive(note.id);
                 case 'delete':
                   deleteWithUndo();
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'pin',
-                child: Text(note.pinned ? 'Открепить' : 'Закрепить'),
-              ),
+              if (!archived)
+                PopupMenuItem(
+                  value: 'pin',
+                  child: Text(note.pinned ? 'Открепить' : 'Закрепить'),
+                ),
               const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
+              if (archived)
+                const PopupMenuItem(
+                  value: 'unarchive',
+                  child: Text('Вернуть из архива'),
+                )
+              else
+                const PopupMenuItem(
+                  value: 'archive',
+                  child: Text('В архив'),
+                ),
               const PopupMenuItem(value: 'delete', child: Text('Удалить')),
             ],
           ),
@@ -224,26 +279,29 @@ class _NoteTile extends ConsumerWidget {
 
 class _EmptyState extends StatelessWidget {
   final bool hasNotes;
-  const _EmptyState({required this.hasNotes});
+  final bool archive;
+  const _EmptyState({required this.hasNotes, this.archive = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final emptyTitle = archive ? 'Архив пуст' : 'Дневник пуст';
+    final emptyHint = archive
+        ? 'Переносите сюда записи через меню «В архив»'
+        : 'Нажмите «Запись», чтобы начать вести дневник';
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.auto_stories,
+          Icon(archive ? Icons.inventory_2_outlined : Icons.auto_stories,
               size: 64,
               color: theme.colorScheme.primary.withValues(alpha: 0.6)),
           const SizedBox(height: 16),
-          Text(hasNotes ? 'Ничего не найдено' : 'Дневник пуст',
+          Text(hasNotes ? 'Ничего не найдено' : emptyTitle,
               style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
-            hasNotes
-                ? 'Измените запрос или фильтр'
-                : 'Нажмите «Запись», чтобы начать вести дневник',
+            hasNotes ? 'Измените запрос или фильтр' : emptyHint,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodySmall,
           ),

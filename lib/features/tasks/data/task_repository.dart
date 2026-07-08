@@ -15,16 +15,51 @@ class TaskRepository {
   final NotificationService notifications;
   TaskRepository(this.db, this.notifications);
 
-  /// Активные (не удалённые) задачи: невыполненные сверху, внутри — новые сверху.
+  /// Активные (не удалённые, не в архиве) задачи:
+  /// невыполненные сверху, внутри — новые сверху.
   Stream<List<Task>> watchTasks() {
     return (db.select(db.tasks)
-          ..where((t) => t.isDeleted.equals(false))
+          ..where((t) => t.isDeleted.equals(false) & t.archivedAt.isNull())
           ..orderBy([
             (t) => OrderingTerm(expression: t.status),
             (t) => OrderingTerm(
                 expression: t.createdAt, mode: OrderingMode.desc),
           ]))
         .watch();
+  }
+
+  /// Архив задач: недавно архивированные сверху.
+  Stream<List<Task>> watchArchivedTasks() {
+    return (db.select(db.tasks)
+          ..where((t) => t.isDeleted.equals(false) & t.archivedAt.isNotNull())
+          ..orderBy([
+            (t) => OrderingTerm(
+                expression: t.archivedAt, mode: OrderingMode.desc),
+          ]))
+        .watch();
+  }
+
+  /// Перенос задачи в архив (напоминание снимается — задача отложена).
+  Future<void> archive(String id) async {
+    await (db.update(db.tasks)..where((t) => t.id.equals(id))).write(
+      TasksCompanion(
+        archivedAt: Value(DateTime.now()),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await notifications.cancel(id);
+  }
+
+  /// Возврат задачи из архива.
+  Future<void> unarchive(String id) async {
+    await (db.update(db.tasks)..where((t) => t.id.equals(id))).write(
+      TasksCompanion(
+        archivedAt: const Value(null),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
   Future<void> addTask({
@@ -130,4 +165,8 @@ final taskRepositoryProvider = Provider<TaskRepository>((ref) {
 
 final tasksStreamProvider = StreamProvider<List<Task>>((ref) {
   return ref.watch(taskRepositoryProvider).watchTasks();
+});
+
+final archivedTasksStreamProvider = StreamProvider<List<Task>>((ref) {
+  return ref.watch(taskRepositoryProvider).watchArchivedTasks();
 });

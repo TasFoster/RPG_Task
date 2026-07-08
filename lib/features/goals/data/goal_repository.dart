@@ -130,6 +130,82 @@ class GoalRepository {
     );
   }
 
+  /// Восстановление мягко удалённой цели (для отмены удаления).
+  Future<void> restoreGoal(String id) {
+    return (db.update(db.goals)..where((g) => g.id.equals(id))).write(
+      GoalsCompanion(
+        isDeleted: const Value(false),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// Редактирование цели/босса. Смена флага «босс» меняет формулу HP,
+  /// поэтому HP пересчитывается.
+  Future<void> updateGoal({
+    required String id,
+    required String title,
+    String? notes,
+    String? axisId,
+    required bool isBoss,
+  }) async {
+    await (db.update(db.goals)..where((g) => g.id.equals(id))).write(
+      GoalsCompanion(
+        title: Value(title),
+        notes: Value(notes),
+        axisId: Value(axisId),
+        isBoss: Value(isBoss),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _recomputeHp(id);
+  }
+
+  /// Редактирование шага. У невыполненного шага пересчитывается ожидаемый XP
+  /// (и HP цели); у выполненного — награда уже начислена, XP не трогаем.
+  Future<void> updateStep({
+    required GoalStep step,
+    required String title,
+    required Difficulty difficulty,
+    required int estimatedMinutes,
+  }) async {
+    final expectedXp = step.status == TaskStatus.done
+        ? step.expectedXp
+        : engine.baseXp(RewardInput(
+            type: ActivityType.goalStep,
+            difficulty: difficulty,
+            frequency: Frequency.rare,
+            estimatedMinutes: estimatedMinutes,
+          ));
+    await (db.update(db.goalSteps)..where((s) => s.id.equals(step.id))).write(
+      GoalStepsCompanion(
+        title: Value(title),
+        difficulty: Value(difficulty),
+        estimatedMinutes: Value(estimatedMinutes),
+        expectedXp: Value(expectedXp),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _recomputeHp(step.goalId);
+  }
+
+  /// Мягкое удаление шага. HP пересчитывается; если удалён последний
+  /// невыполненный шаг — цель закрывается (как при добитии HP до нуля).
+  Future<void> softDeleteStep(GoalStep step) async {
+    await (db.update(db.goalSteps)..where((s) => s.id.equals(step.id))).write(
+      GoalStepsCompanion(
+        isDeleted: const Value(true),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    await _recomputeHp(step.goalId);
+    await _maybeComplete(step.goalId);
+  }
+
   // ---- Внутреннее ----
 
   Future<Goal?> _goalById(String id) =>

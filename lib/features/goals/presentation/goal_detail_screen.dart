@@ -7,11 +7,40 @@ import '../../../core/models/enums.dart';
 import '../../../shared/utils/labels.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
 import '../data/goal_repository.dart';
+import 'goal_edit_dialog.dart';
 
-/// Детали цели/босса: полоса HP, список шагов, добавление и выполнение.
+/// Детали цели/босса: полоса HP, список шагов, добавление, редактирование
+/// и выполнение шагов; редактирование и удаление самой цели.
 class GoalDetailScreen extends ConsumerWidget {
   final String goalId;
   const GoalDetailScreen({super.key, required this.goalId});
+
+  Future<void> _deleteGoal(
+      BuildContext context, WidgetRef ref, Goal goal) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить цель?'),
+        content: Text(
+          '«${goal.title}» и её шаги будут удалены. '
+          'Начисленные награды останутся.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(goalRepositoryProvider).softDeleteGoal(goal.id);
+    if (context.mounted) Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,9 +51,34 @@ class GoalDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(goalAsync.value?.title ?? 'Цель'),
+        actions: [
+          if (goalAsync.value != null)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                final goal = goalAsync.value!;
+                switch (value) {
+                  case 'edit':
+                    showDialog(
+                      context: context,
+                      builder: (_) => GoalEditDialog(goal: goal),
+                    );
+                  case 'delete':
+                    _deleteGoal(context, ref, goal);
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Text('Редактировать'),
+                ),
+                const PopupMenuItem(value: 'delete', child: Text('Удалить')),
+              ],
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddStep(context, ref, goalId),
+        onPressed: () => _showStepDialog(context, ref, goalId: goalId),
         icon: const Icon(Icons.add),
         label: const Text('Шаг'),
       ),
@@ -73,16 +127,32 @@ class GoalDetailScreen extends ConsumerWidget {
                             ),
                         ],
                       ),
+                      if (goal.notes != null &&
+                          goal.notes!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          goal.notes!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       if (goal.isBoss) ...[
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
-                          child: LinearProgressIndicator(
-                            value: hpFrac,
-                            minHeight: 14,
-                            color: theme.colorScheme.error,
-                            backgroundColor:
-                                theme.colorScheme.error.withValues(alpha: 0.15),
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 1, end: hpFrac),
+                            duration: const Duration(milliseconds: 700),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, _) =>
+                                LinearProgressIndicator(
+                              value: value,
+                              minHeight: 14,
+                              color: theme.colorScheme.error,
+                              backgroundColor: theme.colorScheme.error
+                                  .withValues(alpha: 0.15),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -128,12 +198,29 @@ class _StepTile extends ConsumerWidget {
       if (context.mounted) showRewardSnackBar(context, reward);
     }
 
+    void deleteStep() {
+      final messenger = ScaffoldMessenger.of(context);
+      ref.read(goalRepositoryProvider).softDeleteStep(step);
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(content: Text('Шаг удалён: ${step.title}')),
+        );
+    }
+
     return Card(
       margin: const EdgeInsets.only(bottom: 4),
       child: ListTile(
         leading: IconButton(
-          icon: Icon(
-              done ? Icons.check_circle : Icons.radio_button_unchecked),
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            transitionBuilder: (child, animation) =>
+                ScaleTransition(scale: animation, child: child),
+            child: Icon(
+              done ? Icons.check_circle : Icons.radio_button_unchecked,
+              key: ValueKey(done),
+            ),
+          ),
           color: done ? theme.colorScheme.primary : null,
           onPressed: done ? null : complete,
         ),
@@ -147,22 +234,44 @@ class _StepTile extends ConsumerWidget {
         ),
         subtitle: Text(
             '${difficultyLabel(step.difficulty)} · ${step.estimatedMinutes} мин · ~${step.expectedXp} XP'),
+        trailing: PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) {
+            switch (value) {
+              case 'edit':
+                _showStepDialog(context, ref,
+                    goalId: step.goalId, step: step);
+              case 'delete':
+                deleteStep();
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
+            const PopupMenuItem(value: 'delete', child: Text('Удалить')),
+          ],
+        ),
       ),
     );
   }
 }
 
-Future<void> _showAddStep(
-    BuildContext context, WidgetRef ref, String goalId) async {
-  final controller = TextEditingController();
-  var difficulty = Difficulty.auto;
-  var minutes = 25;
+/// Диалог добавления/редактирования шага. Если [step] задан — редактирование.
+Future<void> _showStepDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  required String goalId,
+  GoalStep? step,
+}) async {
+  final controller = TextEditingController(text: step?.title ?? '');
+  var difficulty = step?.difficulty ?? Difficulty.auto;
+  var minutes = step?.estimatedMinutes ?? 25;
+  final isEditing = step != null;
 
-  final created = await showDialog<bool>(
+  final saved = await showDialog<bool>(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: const Text('Новый шаг'),
+        title: Text(isEditing ? 'Редактировать шаг' : 'Новый шаг'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -170,7 +279,7 @@ Future<void> _showAddStep(
             children: [
               TextField(
                 controller: controller,
-                autofocus: true,
+                autofocus: !isEditing,
                 decoration: const InputDecoration(labelText: 'Название шага'),
               ),
               const SizedBox(height: 16),
@@ -213,20 +322,30 @@ Future<void> _showAddStep(
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Добавить'),
+            child: Text(isEditing ? 'Сохранить' : 'Добавить'),
           ),
         ],
       ),
     ),
   );
 
-  if (created == true && controller.text.trim().isNotEmpty) {
-    await ref.read(goalRepositoryProvider).addStep(
-          goalId: goalId,
-          title: controller.text.trim(),
-          difficulty: difficulty,
-          estimatedMinutes: minutes,
-        );
+  if (saved == true && controller.text.trim().isNotEmpty) {
+    final repo = ref.read(goalRepositoryProvider);
+    if (isEditing) {
+      await repo.updateStep(
+        step: step,
+        title: controller.text.trim(),
+        difficulty: difficulty,
+        estimatedMinutes: minutes,
+      );
+    } else {
+      await repo.addStep(
+        goalId: goalId,
+        title: controller.text.trim(),
+        difficulty: difficulty,
+        estimatedMinutes: minutes,
+      );
+    }
   }
   controller.dispose();
 }

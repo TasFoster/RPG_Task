@@ -21,6 +21,8 @@ import '../../features/codex/presentation/codex_screen.dart';
 import '../../features/sleep/presentation/sleep_screen.dart';
 import '../../features/sleep/presentation/chronotype_screen.dart';
 import '../../features/notes/presentation/notes_screen.dart';
+import '../../features/guilds/presentation/guilds_screen.dart';
+import '../../features/ledger/presentation/reward_log_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../widgets/home_shell.dart';
 
@@ -88,6 +90,14 @@ GoRouter buildAppRouter({String initialLocation = '/tasks'}) => GoRouter(
       path: '/habit/:id',
       builder: (context, state) =>
           HabitDetailScreen(habitId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/guilds',
+      builder: (context, state) => const GuildsScreen(),
+    ),
+    GoRoute(
+      path: '/rewards-log',
+      builder: (context, state) => const RewardLogScreen(),
     ),
     GoRoute(
       path: '/sleep',

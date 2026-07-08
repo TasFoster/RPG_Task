@@ -21,10 +21,10 @@ class NoteRepository {
   final RewardService rewards;
   NoteRepository(this.db, this.rewards);
 
-  /// Все заметки: закреплённые сверху, затем по дате создания (новые выше).
+  /// Активные заметки: закреплённые сверху, затем по дате создания (новые выше).
   Stream<List<Note>> watchNotes() {
     return (db.select(db.notes)
-          ..where((n) => n.isDeleted.equals(false))
+          ..where((n) => n.isDeleted.equals(false) & n.archivedAt.isNull())
           ..orderBy([
             (n) => OrderingTerm(
                 expression: n.pinned, mode: OrderingMode.desc),
@@ -32,6 +32,40 @@ class NoteRepository {
                 expression: n.createdAt, mode: OrderingMode.desc),
           ]))
         .watch();
+  }
+
+  /// Архив заметок: недавно архивированные сверху.
+  Stream<List<Note>> watchArchivedNotes() {
+    return (db.select(db.notes)
+          ..where((n) => n.isDeleted.equals(false) & n.archivedAt.isNotNull())
+          ..orderBy([
+            (n) => OrderingTerm(
+                expression: n.archivedAt, mode: OrderingMode.desc),
+          ]))
+        .watch();
+  }
+
+  /// Перенос заметки в архив (закрепление снимается).
+  Future<void> archive(String id) async {
+    await (db.update(db.notes)..where((n) => n.id.equals(id))).write(
+      NotesCompanion(
+        archivedAt: Value(DateTime.now()),
+        pinned: const Value(false),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  /// Возврат заметки из архива.
+  Future<void> unarchive(String id) async {
+    await (db.update(db.notes)..where((n) => n.id.equals(id))).write(
+      NotesCompanion(
+        archivedAt: const Value(null),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
   Stream<Note?> watchNote(String id) {
@@ -142,6 +176,10 @@ final noteRepositoryProvider = Provider<NoteRepository>((ref) {
 
 final notesStreamProvider = StreamProvider<List<Note>>((ref) {
   return ref.watch(noteRepositoryProvider).watchNotes();
+});
+
+final archivedNotesStreamProvider = StreamProvider<List<Note>>((ref) {
+  return ref.watch(noteRepositoryProvider).watchArchivedNotes();
 });
 
 final noteByIdProvider =

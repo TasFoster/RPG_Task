@@ -17,13 +17,35 @@ import '../../widgets/home_widgets_service.dart';
 import '../data/task_repository.dart';
 import 'add_task_dialog.dart';
 
-/// Экран задач: список с наградами за выполнение.
-class TasksScreen extends ConsumerWidget {
+/// Фильтр списка задач.
+enum _TaskFilter { all, pending, done, archive }
+
+/// Экран задач: список с наградами за выполнение, поиском,
+/// фильтрами и архивом.
+class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tasksAsync = ref.watch(tasksStreamProvider);
+  ConsumerState<TasksScreen> createState() => _TasksScreenState();
+}
+
+class _TasksScreenState extends ConsumerState<TasksScreen> {
+  final _searchController = TextEditingController();
+  String _query = '';
+  _TaskFilter _filter = _TaskFilter.all;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final inArchive = _filter == _TaskFilter.archive;
+    final tasksAsync = ref.watch(
+      inArchive ? archivedTasksStreamProvider : tasksStreamProvider,
+    );
     final axesAsync = ref.watch(axesStreamProvider);
     final axesById = {
       for (final a in axesAsync.value ?? const <SkillAxe>[]) a.id: a,
@@ -51,54 +73,161 @@ class TasksScreen extends ConsumerWidget {
         icon: const Icon(Icons.add),
         label: const Text('Задача'),
       ),
-      body: tasksAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Ошибка: $e')),
-        data: (tasks) {
-          final pending = tasks
-              .where((t) => t.status == TaskStatus.pending)
-              .toList();
-          final done = tasks.where((t) => t.status == TaskStatus.done).toList();
-
-          return Column(
-            children: [
-              const DailyTipCard(),
-              Expanded(
-                child: (pending.isEmpty && done.isEmpty)
-                    ? const _EmptyState()
-                    : ListView(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
-                        children: [
-                          for (final task in pending) ...[
-                            _TaskTile(task: task, axis: axesById[task.axisId]),
-                            const SizedBox(height: 4),
-                          ],
-                          if (pending.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 24),
-                              child: Text(
-                                'Все задачи выполнены — герой отдыхает!',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSurfaceVariant,
-                                    ),
-                              ),
-                            ),
-                          if (done.isNotEmpty)
-                            _AchievementsSection(
-                              done: done,
-                              axesById: axesById,
-                            ),
-                        ],
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Поиск по задачам',
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                border: const OutlineInputBorder(),
+                suffixIcon: _query.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _query = '');
+                        },
                       ),
               ),
-            ],
-          );
-        },
+              onChanged: (v) => setState(() => _query = v),
+            ),
+          ),
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: [
+                for (final (f, label) in const [
+                  (_TaskFilter.all, 'Все'),
+                  (_TaskFilter.pending, 'Активные'),
+                  (_TaskFilter.done, 'Выполненные'),
+                  (_TaskFilter.archive, 'Архив'),
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(label),
+                      selected: _filter == f,
+                      onSelected: (_) => setState(() => _filter = f),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: tasksAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Ошибка: $e')),
+              data: (tasks) {
+                final q = _query.trim().toLowerCase();
+                final filtered = tasks.where((t) {
+                  if (q.isEmpty) return true;
+                  return t.title.toLowerCase().contains(q) ||
+                      (t.notes?.toLowerCase().contains(q) ?? false);
+                }).toList();
+
+                if (inArchive) {
+                  return _buildArchive(filtered, axesById);
+                }
+
+                final pending = filtered
+                    .where((t) => t.status == TaskStatus.pending)
+                    .toList();
+                final done = filtered
+                    .where((t) => t.status == TaskStatus.done)
+                    .toList();
+
+                return Column(
+                  children: [
+                    if (_filter == _TaskFilter.all && q.isEmpty)
+                      const DailyTipCard(),
+                    Expanded(
+                      child: (pending.isEmpty && done.isEmpty)
+                          ? (q.isEmpty
+                              ? const _EmptyState()
+                              : const _NothingFound())
+                          : ListView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(12, 8, 12, 96),
+                              children: [
+                                if (_filter != _TaskFilter.done) ...[
+                                  for (final task in pending) ...[
+                                    _TaskTile(
+                                      task: task,
+                                      axis: axesById[task.axisId],
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  if (pending.isEmpty &&
+                                      _filter == _TaskFilter.all)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 24),
+                                      child: Text(
+                                        'Все задачи выполнены — герой отдыхает!',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ),
+                                ],
+                                if (_filter == _TaskFilter.all &&
+                                    done.isNotEmpty)
+                                  _AchievementsSection(
+                                    done: done,
+                                    axesById: axesById,
+                                  ),
+                                if (_filter == _TaskFilter.done)
+                                  for (final task in done) ...[
+                                    _TaskTile(
+                                      task: task,
+                                      axis: axesById[task.axisId],
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                              ],
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildArchive(List<Task> tasks, Map<String, SkillAxe> axesById) {
+    if (tasks.isEmpty) {
+      return _query.isEmpty
+          ? const _EmptyArchive()
+          : const _NothingFound();
+    }
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+      children: [
+        for (final task in tasks) ...[
+          _TaskTile(
+            task: task,
+            axis: axesById[task.axisId],
+            archived: true,
+          ),
+          const SizedBox(height: 4),
+        ],
+      ],
     );
   }
 }
@@ -141,7 +270,8 @@ class _AchievementsSection extends StatelessWidget {
 class _TaskTile extends ConsumerWidget {
   final Task task;
   final SkillAxe? axis;
-  const _TaskTile({required this.task, this.axis});
+  final bool archived;
+  const _TaskTile({required this.task, this.axis, this.archived = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,6 +307,27 @@ class _TaskTile extends ConsumerWidget {
         context: context,
         builder: (_) => AddTaskDialog(task: task),
       );
+    }
+
+    void archive() {
+      final messenger = ScaffoldMessenger.of(context);
+      final repo = ref.read(taskRepositoryProvider);
+      repo.archive(task.id);
+      messenger
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('В архиве: ${task.title}'),
+            action: SnackBarAction(
+              label: 'Отменить',
+              onPressed: () => repo.unarchive(task.id),
+            ),
+          ),
+        );
+    }
+
+    void unarchive() {
+      ref.read(taskRepositoryProvider).unarchive(task.id);
     }
 
     void deleteWithUndo() {
@@ -215,14 +366,29 @@ class _TaskTile extends ConsumerWidget {
         margin: EdgeInsets.zero,
         child: ListTile(
           onTap: edit,
-          leading: IconButton(
-            icon: Icon(
-              done ? Icons.check_circle : Icons.radio_button_unchecked,
-            ),
-            color: done ? theme.colorScheme.primary : null,
-            tooltip: done ? 'Снять выполнение' : 'Выполнить',
-            onPressed: done ? uncomplete : complete,
-          ),
+          leading: archived
+              ? Icon(
+                  done ? Icons.check_circle : Icons.inventory_2_outlined,
+                  color: done
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
+                )
+              : IconButton(
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    transitionBuilder: (child, animation) =>
+                        ScaleTransition(scale: animation, child: child),
+                    child: Icon(
+                      done
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      key: ValueKey(done),
+                    ),
+                  ),
+                  color: done ? theme.colorScheme.primary : null,
+                  tooltip: done ? 'Снять выполнение' : 'Выполнить',
+                  onPressed: done ? uncomplete : complete,
+                ),
           title: Text(
             task.title,
             maxLines: 2,
@@ -277,16 +443,30 @@ class _TaskTile extends ConsumerWidget {
                   edit();
                 case 'uncomplete':
                   uncomplete();
+                case 'archive':
+                  archive();
+                case 'unarchive':
+                  unarchive();
                 case 'delete':
                   deleteWithUndo();
               }
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
-              if (done)
+              if (done && !archived)
                 const PopupMenuItem(
                   value: 'uncomplete',
                   child: Text('Снять выполнение'),
+                ),
+              if (archived)
+                const PopupMenuItem(
+                  value: 'unarchive',
+                  child: Text('Вернуть из архива'),
+                )
+              else
+                const PopupMenuItem(
+                  value: 'archive',
+                  child: Text('В архив'),
                 ),
               const PopupMenuItem(value: 'delete', child: Text('Удалить')),
             ],
@@ -325,6 +505,51 @@ class _EmptyState extends StatelessWidget {
             salt: DateTime.now().day,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyArchive extends StatelessWidget {
+  const _EmptyArchive();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inventory_2_outlined,
+            size: 64,
+            color: theme.colorScheme.primary.withValues(alpha: 0.6),
+          ),
+          const SizedBox(height: 16),
+          Text('Архив пуст', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(
+            'Переносите сюда задачи через меню «В архив»',
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NothingFound extends StatelessWidget {
+  const _NothingFound();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Text(
+        'Ничего не найдено',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

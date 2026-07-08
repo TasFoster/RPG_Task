@@ -36,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -79,6 +79,11 @@ class AppDatabase extends _$AppDatabase {
           // v5 → v6: заметки «Дневника».
           if (from < 6) {
             await m.createTable(notes);
+          }
+          // v6 → v7: архив задач и заметок.
+          if (from < 7) {
+            await m.addColumn(tasks, tasks.archivedAt);
+            await m.addColumn(notes, notes.archivedAt);
           }
         },
         beforeOpen: (details) async {
