@@ -66,16 +66,22 @@ class _GoalTile extends StatelessWidget {
       child: ListTile(
         leading: Icon(
           goal.isBoss ? Icons.whatshot : Icons.flag,
-          color: goal.isBoss ? theme.colorScheme.error : theme.colorScheme.primary,
+          color: goal.isBoss
+              ? theme.colorScheme.error
+              : theme.colorScheme.primary,
         ),
         title: Text(
           goal.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: done
               ? TextStyle(
                   decoration: TextDecoration.lineThrough,
-                  color: theme.colorScheme.onSurfaceVariant)
+                  color: theme.colorScheme.onSurfaceVariant,
+                )
               : null,
         ),
+
         subtitle: goal.isBoss && !done
             ? Padding(
                 padding: const EdgeInsets.only(top: 6),
@@ -85,8 +91,9 @@ class _GoalTile extends StatelessWidget {
                     value: hpFrac,
                     minHeight: 6,
                     color: theme.colorScheme.error,
-                    backgroundColor:
-                        theme.colorScheme.error.withValues(alpha: 0.15),
+                    backgroundColor: theme.colorScheme.error.withValues(
+                      alpha: 0.15,
+                    ),
                   ),
                 ),
               )

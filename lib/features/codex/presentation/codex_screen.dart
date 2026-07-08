@@ -85,7 +85,14 @@ class _CodexScreenState extends ConsumerState<CodexScreen> {
         padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
         child: Row(
           children: [
-            Text(category.label, style: theme.textTheme.titleMedium),
+            Flexible(
+              child: Text(
+                category.label,
+                style: theme.textTheme.titleMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             const Spacer(),
             Text(
               '$openedInCat / ${all.length}',

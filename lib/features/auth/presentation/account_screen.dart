@@ -19,8 +19,7 @@ class AccountScreen extends ConsumerWidget {
       body: !auth.isAvailable
           ? const _NotConfigured()
           : userAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Ошибка: $e')),
               data: (user) =>
                   user == null ? const _AuthForm() : _SignedIn(user: user),
@@ -42,12 +41,16 @@ class _NotConfigured extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off,
-                size: 64,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+            Icon(
+              Icons.cloud_off,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
             const SizedBox(height: 16),
-            Text('Синхронизация не настроена',
-                style: theme.textTheme.titleMedium),
+            Text(
+              'Синхронизация не настроена',
+              style: theme.textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             Text(
               'Приложение работает офлайн. Чтобы включить синхронизацию между '
@@ -103,8 +106,10 @@ class _AuthFormState extends ConsumerState<_AuthForm> {
       if (_isSignUp) {
         await auth.signUp(email: email, password: password);
         // При включённом подтверждении email вход произойдёт после письма.
-        setState(() => _info =
-            'Аккаунт создан. Если включено подтверждение email — проверьте почту.');
+        setState(
+          () => _info =
+              'Аккаунт создан. Если включено подтверждение email — проверьте почту.',
+        );
       } else {
         await auth.signIn(email: email, password: password);
       }
@@ -132,8 +137,7 @@ class _AuthFormState extends ConsumerState<_AuthForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(Icons.cloud_sync,
-              size: 56, color: theme.colorScheme.primary),
+          Icon(Icons.cloud_sync, size: 56, color: theme.colorScheme.primary),
           const SizedBox(height: 12),
           Text(
             _isSignUp ? 'Регистрация' : 'Вход',
@@ -144,8 +148,9 @@ class _AuthFormState extends ConsumerState<_AuthForm> {
           Text(
             'Один аккаунт синхронизирует данные между web и телефоном.',
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 20),
           TextField(
@@ -183,20 +188,23 @@ class _AuthFormState extends ConsumerState<_AuthForm> {
                 ? const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2))
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : Text(_isSignUp ? 'Зарегистрироваться' : 'Войти'),
           ),
           TextButton(
             onPressed: _busy
                 ? null
                 : () => setState(() {
-                      _isSignUp = !_isSignUp;
-                      _error = null;
-                      _info = null;
-                    }),
-            child: Text(_isSignUp
-                ? 'Уже есть аккаунт? Войти'
-                : 'Нет аккаунта? Зарегистрироваться'),
+                    _isSignUp = !_isSignUp;
+                    _error = null;
+                    _info = null;
+                  }),
+            child: Text(
+              _isSignUp
+                  ? 'Уже есть аккаунт? Войти'
+                  : 'Нет аккаунта? Зарегистрироваться',
+            ),
           ),
         ],
       ),
@@ -223,7 +231,7 @@ class _SignedIn extends ConsumerWidget {
               backgroundColor: theme.colorScheme.primaryContainer,
               child: Icon(Icons.person, color: theme.colorScheme.primary),
             ),
-            title: Text(email),
+            title: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis),
             subtitle: const Text('Вы вошли — данные синхронизируются'),
           ),
         ),
@@ -254,32 +262,32 @@ class SyncStatusCard extends ConsumerWidget {
 
     final (IconData icon, String text, Color color) = switch (sync.status) {
       SyncStatus.syncing => (
-          Icons.sync,
-          'Синхронизация…',
-          theme.colorScheme.primary
-        ),
+        Icons.sync,
+        'Синхронизация…',
+        theme.colorScheme.primary,
+      ),
       SyncStatus.success => (
-          Icons.cloud_done,
-          sync.lastSyncedAt == null
-              ? 'Синхронизировано'
-              : 'Синхронизировано в ${DateFormat('HH:mm', 'ru').format(sync.lastSyncedAt!)}',
-          theme.colorScheme.primary
-        ),
+        Icons.cloud_done,
+        sync.lastSyncedAt == null
+            ? 'Синхронизировано'
+            : 'Синхронизировано в ${DateFormat('HH:mm', 'ru').format(sync.lastSyncedAt!)}',
+        theme.colorScheme.primary,
+      ),
       SyncStatus.error => (
-          Icons.sync_problem,
-          'Ошибка синхронизации',
-          theme.colorScheme.error
-        ),
+        Icons.sync_problem,
+        'Ошибка синхронизации',
+        theme.colorScheme.error,
+      ),
       SyncStatus.offline => (
-          Icons.cloud_off,
-          'Не в сети',
-          theme.colorScheme.onSurfaceVariant
-        ),
+        Icons.cloud_off,
+        'Не в сети',
+        theme.colorScheme.onSurfaceVariant,
+      ),
       SyncStatus.idle => (
-          Icons.cloud_queue,
-          'Готово к синхронизации',
-          theme.colorScheme.onSurfaceVariant
-        ),
+        Icons.cloud_queue,
+        'Готово к синхронизации',
+        theme.colorScheme.onSurfaceVariant,
+      ),
     };
 
     return Card(
@@ -297,28 +305,32 @@ class SyncStatusCard extends ConsumerWidget {
             ),
             if (sync.status == SyncStatus.error && sync.error != null) ...[
               const SizedBox(height: 8),
-              Text(sync.error!,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.error)),
+              Text(
+                sync.error!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
             ],
             const SizedBox(height: 12),
             Text(
               'Данные синхронизируются автоматически при входе, возврате в '
               'приложение и периодически. Можно запустить вручную.',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
               onPressed: busy
                   ? null
-                  : () =>
-                      ref.read(syncControllerProvider.notifier).syncNow(),
+                  : () => ref.read(syncControllerProvider.notifier).syncNow(),
               icon: busy
                   ? const SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : const Icon(Icons.sync),
               label: const Text('Синхронизировать сейчас'),
             ),
@@ -331,8 +343,9 @@ class SyncStatusCard extends ConsumerWidget {
             Text(
               'Если опыт, золото или задачи «потерялись» — откройте это на '
               'устройстве с верными данными и перезалейте их в облако.',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),

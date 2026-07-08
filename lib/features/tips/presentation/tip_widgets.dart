@@ -7,16 +7,16 @@ import '../data/tips_settings.dart';
 
 /// Заголовок-обёртка в RPG-стиле по типу контента.
 String _flavorHeader(TipType type) => switch (type) {
-      TipType.quote => 'Мудрость гильдии',
-      TipType.tip => 'Приём искателя',
-      TipType.flavor => 'Голос наставника',
-    };
+  TipType.quote => 'Мудрость гильдии',
+  TipType.tip => 'Приём искателя',
+  TipType.flavor => 'Голос наставника',
+};
 
 IconData _flavorIcon(TipType type) => switch (type) {
-      TipType.quote => Icons.auto_stories,
-      TipType.tip => Icons.explore,
-      TipType.flavor => Icons.pets,
-    };
+  TipType.quote => Icons.auto_stories,
+  TipType.tip => Icons.explore,
+  TipType.flavor => Icons.pets,
+};
 
 /// Карточка «Совет дня» для главного экрана.
 /// Детерминированно меняется раз в сутки. Скрыта, если советы выключены.
@@ -53,32 +53,43 @@ class DailyTipCard extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(_flavorIcon(tip.type),
-                    size: 18, color: theme.colorScheme.primary),
+                Icon(
+                  _flavorIcon(tip.type),
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
-                Text(
-                  _flavorHeader(tip.type),
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    _flavorHeader(tip.type),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const Spacer(),
-                Text('Совет дня',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    )),
+                Text(
+                  'Совет дня',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Text(tip.text, style: theme.textTheme.bodyLarge),
             if (tip.author != null) ...[
               const SizedBox(height: 8),
-              Text('— ${tip.author}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  )),
+              Text(
+                '— ${tip.author}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ],
         ),
@@ -118,8 +129,11 @@ class ContextualTip extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(_flavorIcon(tip.type),
-              size: 18, color: theme.colorScheme.secondary),
+          Icon(
+            _flavorIcon(tip.type),
+            size: 18,
+            color: theme.colorScheme.secondary,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -128,11 +142,13 @@ class ContextualTip extends ConsumerWidget {
                 Text(tip.text, style: theme.textTheme.bodyMedium),
                 if (tip.author != null) ...[
                   const SizedBox(height: 4),
-                  Text('— ${tip.author}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontStyle: FontStyle.italic,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      )),
+                  Text(
+                    '— ${tip.author}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ],
             ),
