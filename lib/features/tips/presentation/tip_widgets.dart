@@ -59,7 +59,7 @@ class DailyTipCard extends ConsumerWidget {
                   color: theme.colorScheme.primary,
                 ),
                 const SizedBox(width: 8),
-                Flexible(
+                Expanded(
                   child: Text(
                     _flavorHeader(tip.type),
                     maxLines: 1,
@@ -70,7 +70,7 @@ class DailyTipCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   'Совет дня',
                   style: theme.textTheme.labelSmall?.copyWith(
