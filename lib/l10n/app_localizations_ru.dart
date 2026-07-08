@@ -24,6 +24,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get navCharacter => 'Герой';
 
   @override
+  String get navJournal => 'Дневник';
+
+  @override
   String get navSettings => 'Настройки';
 
   @override

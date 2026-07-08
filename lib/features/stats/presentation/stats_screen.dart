@@ -258,45 +258,45 @@ class _DailyBars extends StatelessWidget {
 
     return SizedBox(
       height: 140,
-      child: SingleChildScrollView(
+      // Ленивое построение столбцов: для диапазона «Всё время» дней могут быть
+      // сотни, и eager-Row создавал бы их все разом (память/лаги).
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
         reverse: true, // свежие дни у правого края
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            for (final d in days)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${valueByDay[d] ?? 0}',
-                      style: theme.textTheme.labelSmall,
-                    ),
-                    const SizedBox(height: 2),
-                    Container(
-                      width: 16,
-                      height: 90 * ((valueByDay[d] ?? 0) / maxVal),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(3),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      fmt.format(d),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
+        itemCount: days.length,
+        itemBuilder: (context, index) {
+          final d = days[days.length - 1 - index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  '${valueByDay[d] ?? 0}',
+                  style: theme.textTheme.labelSmall,
                 ),
-              ),
-          ],
-        ),
+                const SizedBox(height: 2),
+                Container(
+                  width: 16,
+                  height: 90 * ((valueByDay[d] ?? 0) / maxVal),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(3),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  fmt.format(d),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

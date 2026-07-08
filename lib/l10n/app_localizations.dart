@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Герой'**
   String get navCharacter;
 
+  /// No description provided for @navJournal.
+  ///
+  /// In ru, this message translates to:
+  /// **'Дневник'**
+  String get navJournal;
+
   /// No description provided for @navSettings.
   ///
   /// In ru, this message translates to:
