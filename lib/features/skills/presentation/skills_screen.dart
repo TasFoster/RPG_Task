@@ -123,8 +123,10 @@ class SkillsScreen extends ConsumerWidget {
 
 /// Обрезает длинные имена осей для подписей радар-диаграммы, чтобы они не
 /// вылезали за края экрана (RadarChartTitle не поддерживает ellipsis).
-String _radarLabel(String s, [int max = 14]) =>
-    s.length <= max ? s : '${s.substring(0, max - 1)}…';
+/// Крайние (левая/правая) вершины близко к краю экрана, поэтому лимит короткий;
+/// полное имя оси всегда видно в чипах под диаграммой.
+String _radarLabel(String s, [int max = 10]) =>
+    s.length <= max ? s : '${s.substring(0, max - 1).trimRight()}…';
 
 class _AxisChip extends StatelessWidget {
   final SkillAxe axis;
