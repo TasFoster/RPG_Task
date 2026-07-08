@@ -142,64 +142,66 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                 final done = filtered
                     .where((t) => t.status == TaskStatus.done)
                     .toList();
+                final showTip = _filter == _TaskFilter.all && q.isEmpty;
 
-                return Column(
+                if (pending.isEmpty && done.isEmpty) {
+                  return Column(
+                    children: [
+                      if (showTip) const DailyTipCard(),
+                      Expanded(
+                        child: q.isEmpty
+                            ? const _EmptyState()
+                            : const _NothingFound(),
+                      ),
+                    ],
+                  );
+                }
+                // «Совет дня» — первым элементом скролла, а не отдельной
+                // строкой Column: иначе на маленькой высоте (например, при
+                // открытой клавиатуре) контент переполняется.
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
                   children: [
-                    if (_filter == _TaskFilter.all && q.isEmpty)
-                      const DailyTipCard(),
-                    Expanded(
-                      child: (pending.isEmpty && done.isEmpty)
-                          ? (q.isEmpty
-                              ? const _EmptyState()
-                              : const _NothingFound())
-                          : ListView(
-                              padding:
-                                  const EdgeInsets.fromLTRB(12, 8, 12, 96),
-                              children: [
-                                if (_filter != _TaskFilter.done) ...[
-                                  for (final task in pending) ...[
-                                    _TaskTile(
-                                      task: task,
-                                      axis: axesById[task.axisId],
-                                    ),
-                                    const SizedBox(height: 4),
-                                  ],
-                                  if (pending.isEmpty &&
-                                      _filter == _TaskFilter.all)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 24),
-                                      child: Text(
-                                        'Все задачи выполнены — герой отдыхает!',
-                                        textAlign: TextAlign.center,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                      ),
-                                    ),
-                                ],
-                                if (_filter == _TaskFilter.all &&
-                                    done.isNotEmpty)
-                                  _AchievementsSection(
-                                    done: done,
-                                    axesById: axesById,
-                                  ),
-                                if (_filter == _TaskFilter.done)
-                                  for (final task in done) ...[
-                                    _TaskTile(
-                                      task: task,
-                                      axis: axesById[task.axisId],
-                                    ),
-                                    const SizedBox(height: 4),
-                                  ],
-                              ],
-                            ),
-                    ),
+                    if (showTip) const DailyTipCard(),
+                    if (_filter != _TaskFilter.done) ...[
+                      for (final task in pending) ...[
+                        _TaskTile(
+                          task: task,
+                          axis: axesById[task.axisId],
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      if (pending.isEmpty && _filter == _TaskFilter.all)
+                        Padding(
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 24),
+                          child: Text(
+                            'Все задачи выполнены — герой отдыхает!',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
+                        ),
+                    ],
+                    if (_filter == _TaskFilter.all && done.isNotEmpty)
+                      _AchievementsSection(
+                        done: done,
+                        axesById: axesById,
+                      ),
+                    if (_filter == _TaskFilter.done)
+                      for (final task in done) ...[
+                        _TaskTile(
+                          task: task,
+                          axis: axesById[task.axisId],
+                        ),
+                        const SizedBox(height: 4),
+                      ],
                   ],
                 );
               },
@@ -483,28 +485,32 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // SingleChildScrollView: при малой высоте (клавиатура, транзитные кадры)
+    // контент прокручивается, а не переполняется.
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.task_alt,
-            size: 64,
-            color: theme.colorScheme.primary.withValues(alpha: 0.6),
-          ),
-          const SizedBox(height: 16),
-          Text('Пока нет задач', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Нажмите «Задача», чтобы добавить первую',
-            style: theme.textTheme.bodySmall,
-          ),
-          const SizedBox(height: 24),
-          ContextualTip(
-            category: TipCategory.motivation,
-            salt: DateTime.now().day,
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.task_alt,
+              size: 64,
+              color: theme.colorScheme.primary.withValues(alpha: 0.6),
+            ),
+            const SizedBox(height: 16),
+            Text('Пока нет задач', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(
+              'Нажмите «Задача», чтобы добавить первую',
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 24),
+            ContextualTip(
+              category: TipCategory.motivation,
+              salt: DateTime.now().day,
+            ),
+          ],
+        ),
       ),
     );
   }
