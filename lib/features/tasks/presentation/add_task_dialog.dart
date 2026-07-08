@@ -63,12 +63,18 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(
-          _reminderAt ?? now.add(const Duration(hours: 1))),
+        _reminderAt ?? now.add(const Duration(hours: 1)),
+      ),
     );
     if (time == null) return;
     setState(() {
-      _reminderAt =
-          DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      _reminderAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
     });
   }
 
@@ -136,6 +142,7 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
             const SizedBox(height: 16),
             axesAsync.maybeWhen(
               data: (axes) => DropdownButtonFormField<String?>(
+                isExpanded: true,
                 initialValue: _axisId,
                 decoration: const InputDecoration(labelText: 'Навык (ось)'),
                 items: [
@@ -146,7 +153,11 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
                   for (final SkillAxe a in axes)
                     DropdownMenuItem<String?>(
                       value: a.id,
-                      child: Text(a.name),
+                      child: Text(
+                        a.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                 ],
                 onChanged: (v) => setState(() => _axisId = v),
@@ -175,9 +186,11 @@ class _AddTaskDialogState extends ConsumerState<AddTaskDialog> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.notifications_outlined),
               title: const Text('Напоминание'),
-              subtitle: Text(_reminderAt == null
-                  ? 'Не задано'
-                  : _formatReminder(_reminderAt!)),
+              subtitle: Text(
+                _reminderAt == null
+                    ? 'Не задано'
+                    : _formatReminder(_reminderAt!),
+              ),
               trailing: _reminderAt == null
                   ? null
                   : IconButton(

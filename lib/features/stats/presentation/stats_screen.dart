@@ -62,8 +62,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 color: theme.colorScheme.primary,
               ),
               const SizedBox(height: 20),
-              Text('Задачи и привычки по дням',
-                  style: theme.textTheme.titleMedium),
+              Text(
+                'Задачи и привычки по дням',
+                style: theme.textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               _DailyBars(
                 days: data.days,
@@ -102,23 +104,34 @@ class _HeroBanner extends StatelessWidget {
             CircleAvatar(
               radius: 28,
               backgroundColor: theme.colorScheme.primaryContainer,
-              child: Icon(Icons.auto_awesome,
-                  color: theme.colorScheme.primary, size: 30),
+              child: Icon(
+                Icons.auto_awesome,
+                color: theme.colorScheme.primary,
+                size: 30,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Ранг ${data.range.label.toLowerCase()}: ${rank.name}',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(color: theme.colorScheme.primary)),
+                  Text(
+                    'Ранг ${data.range.label.toLowerCase()}: ${rank.name}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('Уровень сезона: ${data.seasonLevel}  •  '
-                      'Престиж: ${data.prestige}'),
-                  Text('Опыт за всё время: ${data.lifetimeXp} XP',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Уровень сезона: ${data.seasonLevel}  •  '
+                    'Престиж: ${data.prestige}',
+                  ),
+                  Text(
+                    'Опыт за всё время: ${data.lifetimeXp} XP',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -141,10 +154,18 @@ class _SummaryGrid extends StatelessWidget {
       _Metric(Icons.task_alt, 'Задачи', '${data.tasksTotal}', Colors.green),
       _Metric(Icons.repeat, 'Привычки', '${data.habitsTotal}', Colors.teal),
       _Metric(Icons.timer, 'Фокус-сессии', '${data.focusTotal}', Colors.indigo),
-      _Metric(Icons.monetization_on, 'Золото', '${data.goldTotal}',
-          Colors.orange),
-      _Metric(Icons.local_fire_department, 'Лучший стрик',
-          '${data.bestStreak}', Colors.red),
+      _Metric(
+        Icons.monetization_on,
+        'Золото',
+        '${data.goldTotal}',
+        Colors.orange,
+      ),
+      _Metric(
+        Icons.local_fire_department,
+        'Лучший стрик',
+        '${data.bestStreak}',
+        Colors.red,
+      ),
     ];
     return GridView.count(
       crossAxisCount: 3,
@@ -182,12 +203,25 @@ class _MetricTile extends StatelessWidget {
           children: [
             Icon(metric.icon, color: metric.color, size: 26),
             const SizedBox(height: 6),
-            Text(metric.value,
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-            Text(metric.label,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                metric.value,
+                maxLines: 1,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Flexible(
+              child: Text(
+                metric.label,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
           ],
         ),
       ),
@@ -210,12 +244,16 @@ class _DailyBars extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final maxVal = days.fold<int>(
-        1, (m, d) => (valueByDay[d] ?? 0) > m ? (valueByDay[d] ?? 0) : m);
+      1,
+      (m, d) => (valueByDay[d] ?? 0) > m ? (valueByDay[d] ?? 0) : m,
+    );
     final fmt = DateFormat('d.MM');
 
     if (days.isEmpty) {
       return const SizedBox(
-          height: 120, child: Center(child: Text('Нет данных')));
+        height: 120,
+        child: Center(child: Text('Нет данных')),
+      );
     }
 
     return SizedBox(
@@ -232,8 +270,10 @@ class _DailyBars extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text('${valueByDay[d] ?? 0}',
-                        style: theme.textTheme.labelSmall),
+                    Text(
+                      '${valueByDay[d] ?? 0}',
+                      style: theme.textTheme.labelSmall,
+                    ),
                     const SizedBox(height: 2),
                     Container(
                       width: 16,
@@ -241,13 +281,17 @@ class _DailyBars extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: color,
                         borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(3)),
+                          top: Radius.circular(3),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(fmt.format(d),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant)),
+                    Text(
+                      fmt.format(d),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -277,14 +321,19 @@ class _AxisBars extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 6),
             child: Row(
               children: [
-                Icon(materialIcon(a.iconCodePoint),
-                    size: 18, color: Color(a.colorValue)),
+                Icon(
+                  materialIcon(a.iconCodePoint),
+                  size: 18,
+                  color: Color(a.colorValue),
+                ),
                 const SizedBox(width: 8),
                 SizedBox(
                   width: 90,
-                  child: Text(a.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium),
+                  child: Text(
+                    a.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
                 ),
                 Expanded(
                   child: ClipRRect(
@@ -292,10 +341,10 @@ class _AxisBars extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: a.xp / maxXp,
                       minHeight: 12,
-                      backgroundColor:
-                          Color(a.colorValue).withValues(alpha: 0.15),
-                      valueColor:
-                          AlwaysStoppedAnimation(Color(a.colorValue)),
+                      backgroundColor: Color(
+                        a.colorValue,
+                      ).withValues(alpha: 0.15),
+                      valueColor: AlwaysStoppedAnimation(Color(a.colorValue)),
                     ),
                   ),
                 ),

@@ -39,8 +39,10 @@ class _SeasonCard extends StatelessWidget {
   const _SeasonCard({required this.season});
 
   String get _monthTitle {
-    final name = DateFormat('LLLL yyyy', 'ru')
-        .format(DateTime(season.year, season.month));
+    final name = DateFormat(
+      'LLLL yyyy',
+      'ru',
+    ).format(DateTime(season.year, season.month));
     return name.isEmpty ? name : '${name[0].toUpperCase()}${name.substring(1)}';
   }
 
@@ -55,23 +57,26 @@ class _SeasonCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.workspace_premium,
-                    color: theme.colorScheme.primary),
+                Icon(Icons.workspace_premium, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(_monthTitle,
-                      style: theme.textTheme.titleMedium),
+                  child: Text(_monthTitle, style: theme.textTheme.titleMedium),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(season.rank,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer)),
+                  child: Text(
+                    season.rank,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -83,9 +88,16 @@ class _SeasonCard extends StatelessWidget {
                 _stat(theme, Icons.bolt, '${season.xpEarned} XP'),
                 _stat(theme, Icons.stairs, 'ур. ${season.level}'),
                 _stat(theme, Icons.task_alt, '${season.tasksCompleted} задач'),
-                _stat(theme, Icons.repeat, '${season.habitsCompleted} привычек'),
-                _stat(theme, Icons.local_fire_department,
-                    'стрик ${season.bestStreak}'),
+                _stat(
+                  theme,
+                  Icons.repeat,
+                  '${season.habitsCompleted} привычек',
+                ),
+                _stat(
+                  theme,
+                  Icons.local_fire_department,
+                  'стрик ${season.bestStreak}',
+                ),
                 _stat(theme, Icons.diamond, '+${season.gemsAwarded}'),
                 if (season.topAxisName != null)
                   _stat(theme, Icons.hexagon, season.topAxisName!),
@@ -103,7 +115,17 @@ class _SeasonCard extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: theme.colorScheme.secondary),
         const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
+        // В Wrap ширина не ограничена, поэтому вместо Flexible ограничиваем
+        // ширину явно — длинное имя оси обрежется, а не переполнит строку.
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 200),
+          child: Text(
+            text,
+            style: theme.textTheme.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
@@ -121,9 +143,11 @@ class _EmptyHall extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.workspace_premium,
-                size: 64,
-                color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+            Icon(
+              Icons.workspace_premium,
+              size: 64,
+              color: theme.colorScheme.primary.withValues(alpha: 0.6),
+            ),
             const SizedBox(height: 16),
             Text('Зал славы пуст', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),

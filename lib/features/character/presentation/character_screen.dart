@@ -65,26 +65,41 @@ class CharacterScreen extends ConsumerWidget {
                           child: CircleAvatar(
                             radius: 44,
                             backgroundColor: theme.colorScheme.primaryContainer,
-                            child: Icon(avatar?.icon ?? Icons.shield_moon,
-                                size: 48, color: theme.colorScheme.primary),
+                            child: Icon(
+                              avatar?.icon ?? Icons.shield_moon,
+                              size: 48,
+                              color: theme.colorScheme.primary,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Text(name, style: theme.textTheme.titleLarge),
+                        Text(
+                          name,
+                          style: theme.textTheme.titleLarge,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         const SizedBox(height: 4),
-                        Text('Уровень $level',
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(color: theme.colorScheme.primary)),
+                        Text(
+                          'Уровень $level',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
-                              value: progress, minHeight: 12),
+                            value: progress,
+                            minHeight: 12,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                            '$xpInLevel / $xpForLevel XP до уровня ${level + 1}',
-                            style: theme.textTheme.bodySmall),
+                          '$xpInLevel / $xpForLevel XP до уровня ${level + 1}',
+                          style: theme.textTheme.bodySmall,
+                        ),
                       ],
                     ),
                   ),
@@ -116,11 +131,15 @@ class CharacterScreen extends ConsumerWidget {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: theme.colorScheme.secondaryContainer,
-                      child: Icon(pet?.icon ?? Icons.pets,
-                          color: theme.colorScheme.onSecondaryContainer),
+                      child: Icon(
+                        pet?.icon ?? Icons.pets,
+                        color: theme.colorScheme.onSecondaryContainer,
+                      ),
                     ),
                     title: const Text('Питомец'),
-                    subtitle: Text(pet?.name ?? 'Нет питомца — загляните в магазин'),
+                    subtitle: Text(
+                      pet?.name ?? 'Нет питомца — загляните в магазин',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -130,41 +149,53 @@ class CharacterScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: Icon(Icons.whatshot,
-                            color: theme.colorScheme.error),
+                        leading: Icon(
+                          Icons.whatshot,
+                          color: theme.colorScheme.error,
+                        ),
                         title: const Text('Цели и боссы'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/goals'),
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: Icon(Icons.assignment_turned_in,
-                            color: theme.colorScheme.primary),
+                        leading: Icon(
+                          Icons.assignment_turned_in,
+                          color: theme.colorScheme.primary,
+                        ),
                         title: const Text('Ежедневные квесты'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/quests'),
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: Icon(Icons.emoji_events,
-                            color: theme.colorScheme.tertiary),
+                        leading: Icon(
+                          Icons.emoji_events,
+                          color: theme.colorScheme.tertiary,
+                        ),
                         title: const Text('Достижения'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/achievements'),
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: Icon(Icons.insights,
-                            color: theme.colorScheme.primary),
+                        leading: Icon(
+                          Icons.insights,
+                          color: theme.colorScheme.primary,
+                        ),
                         title: const Text('Летопись героя'),
-                        subtitle: const Text('Статистика и динамика показателей'),
+                        subtitle: const Text(
+                          'Статистика и динамика показателей',
+                        ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/stats'),
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: Icon(Icons.menu_book,
-                            color: theme.colorScheme.primary),
+                        leading: Icon(
+                          Icons.menu_book,
+                          color: theme.colorScheme.primary,
+                        ),
                         title: const Text('Кодекс героя'),
                         subtitle: const Text('Коллекция цитат и советов'),
                         trailing: const Icon(Icons.chevron_right),
@@ -172,7 +203,10 @@ class CharacterScreen extends ConsumerWidget {
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.bedtime, color: AppTheme.crystalBlue),
+                        leading: const Icon(
+                          Icons.bedtime,
+                          color: AppTheme.crystalBlue,
+                        ),
                         title: const Text('Трекер сна'),
                         subtitle: const Text('Циклы сна и циркадные ритмы'),
                         trailing: const Icon(Icons.chevron_right),
@@ -180,8 +214,10 @@ class CharacterScreen extends ConsumerWidget {
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: Icon(Icons.storefront,
-                            color: AppTheme.guildGold),
+                        leading: Icon(
+                          Icons.storefront,
+                          color: AppTheme.guildGold,
+                        ),
                         title: const Text('Магазин'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => context.push('/shop'),
@@ -221,7 +257,14 @@ class _CurrencyCard extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 32),
             const SizedBox(height: 8),
-            Text('$value', style: theme.textTheme.titleLarge),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '$value',
+                maxLines: 1,
+                style: theme.textTheme.titleLarge,
+              ),
+            ),
             Text(label, style: theme.textTheme.bodySmall),
           ],
         ),

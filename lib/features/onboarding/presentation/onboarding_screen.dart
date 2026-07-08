@@ -55,10 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _finish,
-                child: Text(l.onboardSkip),
-              ),
+              child: TextButton(onPressed: _finish, child: Text(l.onboardSkip)),
             ),
             Expanded(
               child: PageView.builder(
@@ -67,22 +64,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPageChanged: (i) => setState(() => _page = i),
                 itemBuilder: (context, i) {
                   final (icon, title, body) = pages[i];
-                  return Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(icon, size: 96, color: theme.colorScheme.primary),
-                        const SizedBox(height: 32),
-                        Text(title,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        Text(body,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyLarge),
-                      ],
+                  return LayoutBuilder(
+                    builder: (context, constraints) => SingleChildScrollView(
+                      padding: const EdgeInsets.all(32),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 64,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              icon,
+                              size: 96,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(height: 32),
+                            Text(
+                              title,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              body,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyLarge,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -100,8 +113,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     decoration: BoxDecoration(
                       color: i == _page
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.3),
+                          : theme.colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.3,
+                            ),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),

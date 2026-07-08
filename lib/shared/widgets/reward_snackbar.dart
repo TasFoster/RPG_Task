@@ -18,7 +18,12 @@ void showRewardSnackBar(BuildContext context, RewardResult reward) {
           children: [
             const Icon(Icons.auto_awesome, color: Color(0xFFD4AF37)),
             const SizedBox(width: 12),
-            Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
           ],
         ),
         duration: const Duration(seconds: 2),

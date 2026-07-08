@@ -23,10 +23,7 @@ class AchievementsScreen extends ConsumerWidget {
           childAspectRatio: 0.95,
           children: [
             for (final def in kAchievements)
-              _AchievementCard(
-                def: def,
-                unlocked: unlocked.contains(def.key),
-              ),
+              _AchievementCard(def: def, unlocked: unlocked.contains(def.key)),
           ],
         ),
       ),
@@ -53,16 +50,31 @@ class _AchievementCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(unlocked ? def.icon : Icons.lock_outline, size: 40, color: color),
+            Icon(
+              unlocked ? def.icon : Icons.lock_outline,
+              size: 40,
+              color: color,
+            ),
             const SizedBox(height: 10),
-            Text(def.title,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              def.title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(def.description,
+            Flexible(
+              child: Text(
+                def.description,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
             const SizedBox(height: 6),
             Text(
               [

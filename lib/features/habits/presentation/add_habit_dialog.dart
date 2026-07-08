@@ -39,7 +39,9 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
-    await ref.read(habitRepositoryProvider).addHabit(
+    await ref
+        .read(habitRepositoryProvider)
+        .addHabit(
           title: title,
           axisId: _axisId,
           frequency: _frequency,
@@ -102,6 +104,7 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
             const SizedBox(height: 16),
             axesAsync.maybeWhen(
               data: (axes) => DropdownButtonFormField<String?>(
+                isExpanded: true,
                 initialValue: _axisId,
                 decoration: const InputDecoration(labelText: 'Навык (ось)'),
                 items: [
@@ -112,7 +115,11 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
                   for (final SkillAxe a in axes)
                     DropdownMenuItem<String?>(
                       value: a.id,
-                      child: Text(a.name),
+                      child: Text(
+                        a.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                 ],
                 onChanged: (v) => setState(() => _axisId = v),
@@ -124,9 +131,11 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.notifications_outlined),
               title: const Text('Ежедневное напоминание'),
-              subtitle: Text(_reminderTime == null
-                  ? 'Не задано'
-                  : _reminderTime!.format(context)),
+              subtitle: Text(
+                _reminderTime == null
+                    ? 'Не задано'
+                    : _reminderTime!.format(context),
+              ),
               trailing: _reminderTime == null
                   ? null
                   : IconButton(

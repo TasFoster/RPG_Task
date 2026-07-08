@@ -39,15 +39,26 @@ class _CodexScreenState extends ConsumerState<CodexScreen> {
         data: (entries) {
           final byKey = {for (final e in entries) e.id: e};
           final total = tipsCatalog.length;
-          final opened = tipsCatalog.where((t) => byKey.containsKey(t.key)).length;
+          final opened = tipsCatalog
+              .where((t) => byKey.containsKey(t.key))
+              .length;
 
+          final sections = [
+            for (final category in TipCategory.values)
+              ..._categorySection(context, category, byKey),
+          ];
           return ListView(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
             children: [
               _ProgressHeader(opened: opened, total: total),
               const SizedBox(height: 12),
-              for (final category in TipCategory.values)
-                ..._categorySection(context, category, byKey),
+              if (sections.isEmpty && _favoritesOnly)
+                const Padding(
+                  padding: EdgeInsets.only(top: 48),
+                  child: Center(child: Text('В избранном пока пусто')),
+                )
+              else
+                ...sections,
             ],
           );
         },
@@ -76,9 +87,12 @@ class _CodexScreenState extends ConsumerState<CodexScreen> {
           children: [
             Text(category.label, style: theme.textTheme.titleMedium),
             const Spacer(),
-            Text('$openedInCat / ${all.length}',
-                style: theme.textTheme.labelMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              '$openedInCat / ${all.length}',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -113,8 +127,10 @@ class _ProgressHeader extends StatelessWidget {
               children: [
                 Icon(Icons.menu_book, color: theme.colorScheme.primary),
                 const SizedBox(width: 10),
-                Text('Открыто $opened из $total',
-                    style: theme.textTheme.titleMedium),
+                Text(
+                  'Открыто $opened из $total',
+                  style: theme.textTheme.titleMedium,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -123,15 +139,15 @@ class _ProgressHeader extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: ratio,
                 minHeight: 10,
-                backgroundColor:
-                    theme.colorScheme.surfaceContainerHighest,
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Открывайте новые записи, выполняя задачи и привычки.',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -155,11 +171,16 @@ class _CodexTile extends StatelessWidget {
       return Card(
         margin: const EdgeInsets.symmetric(vertical: 4),
         child: ListTile(
-          leading: Icon(Icons.lock_outline,
-              color: theme.colorScheme.onSurfaceVariant),
-          title: Text('Тайная мудрость',
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          leading: Icon(
+            Icons.lock_outline,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          title: Text(
+            'Тайная мудрость',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           subtitle: const Text('Ещё не открыто'),
         ),
       );
@@ -180,18 +201,22 @@ class _CodexTile extends StatelessWidget {
                   Text(tip.text, style: theme.textTheme.bodyLarge),
                   if (tip.author != null) ...[
                     const SizedBox(height: 6),
-                    Text('— ${tip.author}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        )),
+                    Text(
+                      '— ${tip.author}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(fav ? Icons.star : Icons.star_border,
-                  color: fav ? theme.colorScheme.secondary : null),
+              icon: Icon(
+                fav ? Icons.star : Icons.star_border,
+                color: fav ? theme.colorScheme.secondary : null,
+              ),
               onPressed: onFavorite,
             ),
           ],

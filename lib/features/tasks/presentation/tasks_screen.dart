@@ -46,10 +46,8 @@ class TasksScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (_) => const AddTaskDialog(),
-        ),
+        onPressed: () =>
+            showDialog(context: context, builder: (_) => const AddTaskDialog()),
         icon: const Icon(Icons.add),
         label: const Text('Задача'),
       ),
@@ -57,10 +55,10 @@ class TasksScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Ошибка: $e')),
         data: (tasks) {
-          final pending =
-              tasks.where((t) => t.status == TaskStatus.pending).toList();
-          final done =
-              tasks.where((t) => t.status == TaskStatus.done).toList();
+          final pending = tasks
+              .where((t) => t.status == TaskStatus.pending)
+              .toList();
+          final done = tasks.where((t) => t.status == TaskStatus.done).toList();
 
           return Column(
             children: [
@@ -72,8 +70,7 @@ class TasksScreen extends ConsumerWidget {
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
                         children: [
                           for (final task in pending) ...[
-                            _TaskTile(
-                                task: task, axis: axesById[task.axisId]),
+                            _TaskTile(task: task, axis: axesById[task.axisId]),
                             const SizedBox(height: 4),
                           ],
                           if (pending.isEmpty)
@@ -82,13 +79,12 @@ class TasksScreen extends ConsumerWidget {
                               child: Text(
                                 'Все задачи выполнены — герой отдыхает!',
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
                               ),
                             ),
                           if (done.isNotEmpty)
@@ -123,10 +119,14 @@ class _AchievementsSection extends StatelessWidget {
         initiallyExpanded: false,
         tilePadding: const EdgeInsets.symmetric(horizontal: 8),
         childrenPadding: EdgeInsets.zero,
-        leading: Icon(Icons.emoji_events_outlined,
-            color: theme.colorScheme.primary),
-        title: Text('Свершения (${done.length})',
-            style: theme.textTheme.titleSmall),
+        leading: Icon(
+          Icons.emoji_events_outlined,
+          color: theme.colorScheme.primary,
+        ),
+        title: Text(
+          'Свершения (${done.length})',
+          style: theme.textTheme.titleSmall,
+        ),
         children: [
           for (final task in done) ...[
             _TaskTile(task: task, axis: axesById[task.axisId]),
@@ -164,9 +164,11 @@ class _TaskTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(const SnackBar(
-            content: Text('Выполнение снято, награда возвращена'),
-          ));
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Выполнение снято, награда возвращена'),
+            ),
+          );
       }
     }
 
@@ -185,16 +187,18 @@ class _TaskTile extends ConsumerWidget {
       updateHomeWidgets(db);
       messenger
         ..clearSnackBars()
-        ..showSnackBar(SnackBar(
-          content: Text('Задача удалена: ${task.title}'),
-          action: SnackBarAction(
-            label: 'Отменить',
-            onPressed: () async {
-              await repo.restore(task.id);
-              await updateHomeWidgets(db);
-            },
+        ..showSnackBar(
+          SnackBar(
+            content: Text('Задача удалена: ${task.title}'),
+            action: SnackBarAction(
+              label: 'Отменить',
+              onPressed: () async {
+                await repo.restore(task.id);
+                await updateHomeWidgets(db);
+              },
+            ),
           ),
-        ));
+        );
     }
 
     return Dismissible(
@@ -212,15 +216,17 @@ class _TaskTile extends ConsumerWidget {
         child: ListTile(
           onTap: edit,
           leading: IconButton(
-            icon: Icon(done
-                ? Icons.check_circle
-                : Icons.radio_button_unchecked),
+            icon: Icon(
+              done ? Icons.check_circle : Icons.radio_button_unchecked,
+            ),
             color: done ? theme.colorScheme.primary : null,
             tooltip: done ? 'Снять выполнение' : 'Выполнить',
             onPressed: done ? uncomplete : complete,
           ),
           title: Text(
             task.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: done
                 ? theme.textTheme.bodyLarge?.copyWith(
                     decoration: TextDecoration.lineThrough,
@@ -231,20 +237,35 @@ class _TaskTile extends ConsumerWidget {
           subtitle: Row(
             children: [
               if (axis != null) ...[
-                Icon(materialIcon(axis!.iconCodePoint),
-                    size: 14, color: Color(axis!.colorValue)),
+                Icon(
+                  materialIcon(axis!.iconCodePoint),
+                  size: 14,
+                  color: Color(axis!.colorValue),
+                ),
                 const SizedBox(width: 4),
-                Text(axis!.name, style: theme.textTheme.bodySmall),
+                Flexible(
+                  child: Text(
+                    axis!.name,
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const SizedBox(width: 10),
               ],
               Icon(Icons.bolt, size: 14, color: theme.colorScheme.secondary),
-              Text(difficultyLabel(task.difficulty),
-                  style: theme.textTheme.bodySmall),
+              Text(
+                difficultyLabel(task.difficulty),
+                style: theme.textTheme.bodySmall,
+              ),
               if (done) ...[
                 const SizedBox(width: 10),
-                Text('+${task.xpAwarded} XP',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: theme.colorScheme.primary)),
+                Text(
+                  '+${task.xpAwarded} XP',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ],
             ],
           ),
@@ -264,7 +285,9 @@ class _TaskTile extends ConsumerWidget {
               const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
               if (done)
                 const PopupMenuItem(
-                    value: 'uncomplete', child: Text('Снять выполнение')),
+                  value: 'uncomplete',
+                  child: Text('Снять выполнение'),
+                ),
               const PopupMenuItem(value: 'delete', child: Text('Удалить')),
             ],
           ),
@@ -284,13 +307,18 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.task_alt,
-              size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+          Icon(
+            Icons.task_alt,
+            size: 64,
+            color: theme.colorScheme.primary.withValues(alpha: 0.6),
+          ),
           const SizedBox(height: 16),
           Text('Пока нет задач', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text('Нажмите «Задача», чтобы добавить первую',
-              style: theme.textTheme.bodySmall),
+          Text(
+            'Нажмите «Задача», чтобы добавить первую',
+            style: theme.textTheme.bodySmall,
+          ),
           const SizedBox(height: 24),
           ContextualTip(
             category: TipCategory.motivation,

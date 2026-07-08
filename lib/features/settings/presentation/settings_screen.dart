@@ -22,8 +22,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _requestPermissions() async {
     setState(() => _busy = true);
-    final granted =
-        await ref.read(notificationServiceProvider).requestPermissions();
+    final granted = await ref
+        .read(notificationServiceProvider)
+        .requestPermissions();
     if (mounted) {
       setState(() {
         _granted = granted;
@@ -80,15 +81,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 final subtitle = !auth.isAvailable
                     ? 'Офлайн-режим (облако не настроено)'
                     : user == null
-                        ? 'Войдите для синхронизации между устройствами'
-                        : 'Вы вошли: ${user.email ?? 'аккаунт'}';
+                    ? 'Войдите для синхронизации между устройствами'
+                    : 'Вы вошли: ${user.email ?? 'аккаунт'}';
                 return ListTile(
                   leading: Icon(
                     user != null ? Icons.cloud_done : Icons.cloud_outlined,
                     color: user != null ? theme.colorScheme.primary : null,
                   ),
                   title: const Text('Аккаунт и синхронизация'),
-                  subtitle: Text(subtitle),
+                  subtitle: Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/account'),
                 );
@@ -106,15 +111,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   title: const Text('Совет дня на главной'),
                   subtitle: const Text('Цитата или совет вверху экрана задач'),
                   value: tips.dailyEnabled,
-                  onChanged: (v) =>
-                      _saveTips(tips.copyWith(dailyEnabled: v)),
+                  onChanged: (v) => _saveTips(tips.copyWith(dailyEnabled: v)),
                 ),
                 const Divider(height: 1),
                 SwitchListTile(
                   secondary: const Icon(Icons.tips_and_updates_outlined),
                   title: const Text('Контекстные подсказки'),
-                  subtitle:
-                      const Text('В пустых списках, на Помодоро и т.п.'),
+                  subtitle: const Text('В пустых списках, на Помодоро и т.п.'),
                   value: tips.contextualEnabled,
                   onChanged: (v) =>
                       _saveTips(tips.copyWith(contextualEnabled: v)),
@@ -142,8 +145,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: const Text('Утренний девиз'),
                     subtitle: Text('Каждый день в ${_fmt(tips.morningMinute)}'),
                     value: tips.pushMorning,
-                    onChanged: (v) =>
-                        _saveTips(tips.copyWith(pushMorning: v)),
+                    onChanged: (v) => _saveTips(tips.copyWith(pushMorning: v)),
                   ),
                   if (tips.pushMorning)
                     ListTile(
@@ -159,11 +161,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   SwitchListTile(
                     secondary: const Icon(Icons.nightlight_outlined),
                     title: const Text('Вечерняя рефлексия'),
-                    subtitle:
-                        Text('Каждый день в ${_fmt(tips.eveningMinute)}'),
+                    subtitle: Text('Каждый день в ${_fmt(tips.eveningMinute)}'),
                     value: tips.pushEvening,
-                    onChanged: (v) =>
-                        _saveTips(tips.copyWith(pushEvening: v)),
+                    onChanged: (v) => _saveTips(tips.copyWith(pushEvening: v)),
                   ),
                   if (tips.pushEvening)
                     ListTile(
@@ -190,8 +190,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   if (!supported) ...[
                     Row(
                       children: [
-                        Icon(Icons.info_outline,
-                            color: theme.colorScheme.onSurfaceVariant),
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 12),
                         const Expanded(
                           child: Text(
@@ -219,9 +221,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 : theme.colorScheme.error,
                           ),
                           const SizedBox(width: 8),
-                          Text(_granted!
-                              ? 'Разрешение выдано'
-                              : 'Разрешение не выдано'),
+                          Text(
+                            _granted!
+                                ? 'Разрешение выдано'
+                                : 'Разрешение не выдано',
+                          ),
                         ],
                       ),
                     const SizedBox(height: 12),

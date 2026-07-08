@@ -62,7 +62,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
     final title = _titleController.text.trim();
     final body = _bodyController.text.trim();
     if (title.isEmpty && body.isEmpty) {
-      Navigator.of(context).pop();
+      // Если существующую запись очистили полностью — удаляем её (мягко),
+      // чтобы действие пользователя не терялось молча.
+      if (_isEditing) {
+        await ref.read(noteRepositoryProvider).softDelete(widget.note!.id);
+      }
+      if (mounted) Navigator.of(context).pop();
       return;
     }
     final repo = ref.read(noteRepositoryProvider);
@@ -117,10 +122,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildEdit(context),
-          _buildPreview(context),
-        ],
+        children: [_buildEdit(context), _buildPreview(context)],
       ),
     );
   }
@@ -171,6 +173,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
         const SizedBox(height: 20),
         axesAsync.maybeWhen(
           data: (axes) => DropdownButtonFormField<String?>(
+            isExpanded: true,
             initialValue: _axisId,
             decoration: const InputDecoration(labelText: 'Навык (ось)'),
             items: [
@@ -181,7 +184,11 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
               for (final SkillAxe a in axes)
                 DropdownMenuItem<String?>(
                   value: a.id,
-                  child: Text(a.name),
+                  child: Text(
+                    a.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
             ],
             onChanged: (v) => setState(() => _axisId = v),
@@ -198,9 +205,12 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
     final body = _bodyController.text.trim();
     if (title.isEmpty && body.isEmpty) {
       return Center(
-        child: Text('Нечего показать',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        child: Text(
+          'Нечего показать',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       );
     }
     return SingleChildScrollView(
@@ -214,8 +224,9 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen>
           ],
           MarkdownBlock(
             data: body,
-            config:
-                isDark ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig,
+            config: isDark
+                ? MarkdownConfig.darkConfig
+                : MarkdownConfig.defaultConfig,
           ),
         ],
       ),

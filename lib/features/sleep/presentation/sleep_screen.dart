@@ -17,6 +17,15 @@ String _dur(Duration d) {
   return m == 0 ? '$hч' : '$hч $mм';
 }
 
+/// Русское склонение слова «цикл» по числу.
+String _pluralCycles(int n) {
+  final mod10 = n % 10;
+  final mod100 = n % 100;
+  if (mod10 == 1 && mod100 != 11) return 'цикл';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'цикла';
+  return 'циклов';
+}
+
 /// Трекер сна: калькулятор циклов, хронотип, дневник и статистика.
 class SleepScreen extends ConsumerWidget {
   const SleepScreen({super.key});
@@ -47,8 +56,10 @@ class SleepScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               _DurationChart(logs: logs),
               const SizedBox(height: 12),
-              Text('Дневник сна',
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Дневник сна',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 4),
               for (final log in logs) _SleepTile(log: log),
             ] else
@@ -93,9 +104,14 @@ class _ChronotypeCard extends ConsumerWidget {
               children: [
                 Icon(Icons.person, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Хронотип: ${type.label}',
-                    style: theme.textTheme.titleSmall),
-                const Spacer(),
+                Expanded(
+                  child: Text(
+                    'Хронотип: ${type.label}',
+                    style: theme.textTheme.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 TextButton(
                   onPressed: () => context.push('/sleep/chronotype'),
                   child: const Text('Пройти заново'),
@@ -107,8 +123,9 @@ class _ChronotypeCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               'Рекомендуемое окно: ${_min(w.bed)} – ${_min(w.wake)}',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -138,8 +155,16 @@ class _CycleCalculatorCardState extends State<_CycleCalculatorCard> {
     final now = DateTime.now();
     final bedOptions = wakeTimesForBed(now);
 
-    final wakeDt = DateTime(now.year, now.month, now.day, _wake.hour, _wake.minute);
-    final targetWake = wakeDt.isAfter(now) ? wakeDt : wakeDt.add(const Duration(days: 1));
+    final wakeDt = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      _wake.hour,
+      _wake.minute,
+    );
+    final targetWake = wakeDt.isAfter(now)
+        ? wakeDt
+        : wakeDt.add(const Duration(days: 1));
     final sleepOptions = bedtimesForWake(targetWake);
 
     return Card(
@@ -152,17 +177,24 @@ class _CycleCalculatorCardState extends State<_CycleCalculatorCard> {
               children: [
                 Icon(Icons.bedtime, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
-                Text('Калькулятор циклов сна',
-                    style: theme.textTheme.titleSmall),
+                Text(
+                  'Калькулятор циклов сна',
+                  style: theme.textTheme.titleSmall,
+                ),
               ],
             ),
             const SizedBox(height: 4),
-            Text('Цикл сна ~90 минут. Просыпаться лучше на границе цикла.',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Text(
+              'Цикл сна ~90 минут. Просыпаться лучше на границе цикла.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             const Divider(height: 24),
-            Text('Если лечь сейчас — вставать в:',
-                style: theme.textTheme.labelLarge),
+            Text(
+              'Если лечь сейчас — вставать в:',
+              style: theme.textTheme.labelLarge,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -176,13 +208,17 @@ class _CycleCalculatorCardState extends State<_CycleCalculatorCard> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Чтобы встать в ${_wake.format(context)} — лечь в:',
-                      style: theme.textTheme.labelLarge),
+                  child: Text(
+                    'Чтобы встать в ${_wake.format(context)} — лечь в:',
+                    style: theme.textTheme.labelLarge,
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: () async {
                     final picked = await showTimePicker(
-                        context: context, initialTime: _wake);
+                      context: context,
+                      initialTime: _wake,
+                    );
                     if (picked != null) setState(() => _wake = picked);
                   },
                   icon: const Icon(Icons.schedule, size: 18),
@@ -229,11 +265,16 @@ class _OptionChip extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(time,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold)),
-          Text('$cycles цикла · ${(cycles * 1.5).toStringAsFixed(1)}ч',
-              style: theme.textTheme.labelSmall),
+          Text(
+            time,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            '$cycles ${_pluralCycles(cycles)} · ${(cycles * 1.5).toStringAsFixed(1)}ч',
+            style: theme.textTheme.labelSmall,
+          ),
         ],
       ),
     );
@@ -249,15 +290,18 @@ class _StatsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final recent = logs.take(7).toList();
-    final durations =
-        recent.map((l) => sleepDuration(l.bedTime, l.wakeTime)).toList();
+    final durations = recent
+        .map((l) => sleepDuration(l.bedTime, l.wakeTime))
+        .toList();
     final avgMin = durations.isEmpty
         ? 0
         : durations.map((d) => d.inMinutes).reduce((a, b) => a + b) ~/
-            durations.length;
+              durations.length;
     final target = (kTargetSleepHours * 60).round();
     final debtMin = durations.fold<int>(
-        0, (acc, d) => acc + (target - d.inMinutes).clamp(0, target));
+      0,
+      (acc, d) => acc + (target - d.inMinutes).clamp(0, target),
+    );
     final lastNight = sleepDuration(logs.first.bedTime, logs.first.wakeTime);
 
     return Row(
@@ -294,8 +338,11 @@ class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _StatCard(
-      {required this.icon, required this.label, required this.value});
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -307,13 +354,18 @@ class _StatCard extends StatelessWidget {
           children: [
             Icon(icon, color: theme.colorScheme.primary, size: 24),
             const SizedBox(height: 6),
-            Text(value,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              value,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelSmall),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelSmall,
+            ),
           ],
         ),
       ),
@@ -350,11 +402,11 @@ class _DurationChart extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         child: _Bar(
-                          ratio: (sleepDuration(l.bedTime, l.wakeTime)
-                                      .inMinutes /
-                                  60 /
-                                  maxHours)
-                              .clamp(0.02, 1.0),
+                          ratio:
+                              (sleepDuration(l.bedTime, l.wakeTime).inMinutes /
+                                      60 /
+                                      maxHours)
+                                  .clamp(0.02, 1.0),
                           label: _hm(l.wakeTime).substring(0, 2),
                         ),
                       ),
@@ -387,8 +439,9 @@ class _Bar extends StatelessWidget {
               heightFactor: ratio,
               child: Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary
-                      .withValues(alpha: 0.3 + 0.7 * ratio),
+                  color: theme.colorScheme.primary.withValues(
+                    alpha: 0.3 + 0.7 * ratio,
+                  ),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -421,20 +474,24 @@ class _SleepTile extends ConsumerWidget {
         color: theme.colorScheme.errorContainer,
         child: Icon(Icons.delete, color: theme.colorScheme.onErrorContainer),
       ),
-      onDismissed: (_) =>
-          ref.read(sleepRepositoryProvider).deleteSleep(log.id),
+      onDismissed: (_) => ref.read(sleepRepositoryProvider).deleteSleep(log.id),
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 3),
         child: ListTile(
           leading: const Icon(Icons.bedtime_outlined),
-          title: Text('${_hm(log.bedTime)} → ${_hm(log.wakeTime)}  ·  ${_dur(dur)}'),
-          subtitle: Text(log.note?.isNotEmpty == true
-              ? log.note!
-              : log.dateKey),
+          title: Text(
+            '${_hm(log.bedTime)} → ${_hm(log.wakeTime)}  ·  ${_dur(dur)}',
+          ),
+          subtitle: Text(
+            log.note?.isNotEmpty == true ? log.note! : log.dateKey,
+          ),
           trailing: log.xpAwarded > 0
-              ? Text('+${log.xpAwarded} XP',
-                  style: theme.textTheme.labelMedium
-                      ?.copyWith(color: theme.colorScheme.primary))
+              ? Text(
+                  '+${log.xpAwarded} XP',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                )
               : null,
           onTap: () => _editSleep(context, ref, existing: log),
         ),
@@ -453,14 +510,18 @@ class _EmptyHint extends StatelessWidget {
       padding: const EdgeInsets.only(top: 24),
       child: Column(
         children: [
-          Icon(Icons.bedtime,
-              size: 56,
-              color: theme.colorScheme.primary.withValues(alpha: 0.5)),
+          Icon(
+            Icons.bedtime,
+            size: 56,
+            color: theme.colorScheme.primary.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 12),
           Text('Ещё нет записей сна', style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
-          Text('Нажмите «Записать сон», чтобы начать',
-              style: theme.textTheme.bodySmall),
+          Text(
+            'Нажмите «Записать сон», чтобы начать',
+            style: theme.textTheme.bodySmall,
+          ),
         ],
       ),
     );
@@ -476,7 +537,8 @@ Future<void> _editSleep(
 }) async {
   final now = DateTime.now();
   final yesterday = now.subtract(const Duration(days: 1));
-  var bed = existing?.bedTime ??
+  var bed =
+      existing?.bedTime ??
       DateTime(yesterday.year, yesterday.month, yesterday.day, 23, 0);
   var wake = existing?.wakeTime ?? DateTime(now.year, now.month, now.day, 7, 0);
   var note = existing?.note ?? '';
@@ -500,8 +562,13 @@ Future<void> _editSleep(
               initialTime: TimeOfDay.fromDateTime(base),
             );
             if (time == null) return;
-            final dt =
-                DateTime(date.year, date.month, date.day, time.hour, time.minute);
+            final dt = DateTime(
+              date.year,
+              date.month,
+              date.day,
+              time.hour,
+              time.minute,
+            );
             setState(() {
               if (isBed) {
                 bed = dt;
@@ -513,6 +580,7 @@ Future<void> _editSleep(
 
           final dur = sleepDuration(bed, wake);
           return AlertDialog(
+            scrollable: true,
             title: Text(existing == null ? 'Запись сна' : 'Правка записи'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -532,8 +600,10 @@ Future<void> _editSleep(
                   onTap: () => pick(false),
                 ),
                 const SizedBox(height: 4),
-                Text('Итого сна: ${_dur(dur)}',
-                    style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  'Итого сна: ${_dur(dur)}',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: note,
@@ -565,10 +635,17 @@ Future<void> _editSleep(
   final repo = ref.read(sleepRepositoryProvider);
   if (existing == null) {
     final reward = await repo.addSleep(
-        bed: bed, wake: wake, note: note.isEmpty ? null : note);
+      bed: bed,
+      wake: wake,
+      note: note.isEmpty ? null : note,
+    );
     if (context.mounted) showRewardSnackBar(context, reward);
   } else {
     await repo.updateSleep(
-        id: existing.id, bed: bed, wake: wake, note: note.isEmpty ? null : note);
+      id: existing.id,
+      bed: bed,
+      wake: wake,
+      note: note.isEmpty ? null : note,
+    );
   }
 }

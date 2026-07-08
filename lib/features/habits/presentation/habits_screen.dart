@@ -45,7 +45,9 @@ class HabitsScreen extends ConsumerWidget {
             children: [
               if (habits.isNotEmpty)
                 const HabitHeatmapCard(
-                    title: 'Жизнь героя', icon: Icons.auto_graph),
+                  title: 'Жизнь героя',
+                  icon: Icons.auto_graph,
+                ),
               Expanded(
                 child: habits.isEmpty
                     ? const _EmptyState()
@@ -56,7 +58,9 @@ class HabitsScreen extends ConsumerWidget {
                         itemBuilder: (context, i) {
                           final habit = habits[i];
                           return _HabitTile(
-                              habit: habit, axis: axesById[habit.axisId]);
+                            habit: habit,
+                            axis: axesById[habit.axisId],
+                          );
                         },
                       ),
               ),
@@ -108,33 +112,53 @@ class _HabitTile extends ConsumerWidget {
         color: theme.colorScheme.errorContainer,
         child: Icon(Icons.delete, color: theme.colorScheme.onErrorContainer),
       ),
-      onDismissed: (_) => ref.read(habitRepositoryProvider).softDelete(habit.id),
+      onDismissed: (_) =>
+          ref.read(habitRepositoryProvider).softDelete(habit.id),
       child: Card(
         margin: EdgeInsets.zero,
         child: ListTile(
           leading: IconButton(
-            icon: Icon(doneToday
-                ? Icons.check_circle
-                : Icons.radio_button_unchecked),
+            icon: Icon(
+              doneToday ? Icons.check_circle : Icons.radio_button_unchecked,
+            ),
             color: doneToday ? theme.colorScheme.primary : null,
             onPressed: doneToday ? null : complete,
           ),
           onTap: () => context.push('/habit/${habit.id}'),
-          title: Text(habit.title),
+          title: Text(
+            habit.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
           subtitle: Row(
             children: [
               if (axis != null) ...[
-                Icon(materialIcon(axis!.iconCodePoint),
-                    size: 14, color: Color(axis!.colorValue)),
+                Icon(
+                  materialIcon(axis!.iconCodePoint),
+                  size: 14,
+                  color: Color(axis!.colorValue),
+                ),
                 const SizedBox(width: 4),
-                Text(axis!.name, style: theme.textTheme.bodySmall),
+                Flexible(
+                  child: Text(
+                    axis!.name,
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const SizedBox(width: 10),
               ],
-              Icon(Icons.calendar_today,
-                  size: 12, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.calendar_today,
+                size: 12,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 4),
-              Text(frequencyLabel(habit.frequency),
-                  style: theme.textTheme.bodySmall),
+              Text(
+                frequencyLabel(habit.frequency),
+                style: theme.textTheme.bodySmall,
+              ),
             ],
           ),
           trailing: _StreakBadge(streak: habit.streakCurrent),
@@ -162,11 +186,13 @@ class _StreakBadge extends StatelessWidget {
               ? const Color(0xFFEA580C)
               : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
         ),
-        Text('$streak',
-            style: theme.textTheme.labelSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: active ? const Color(0xFFEA580C) : null,
-            )),
+        Text(
+          '$streak',
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: active ? const Color(0xFFEA580C) : null,
+          ),
+        ),
       ],
     );
   }
@@ -182,13 +208,18 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.local_fire_department,
-              size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+          Icon(
+            Icons.local_fire_department,
+            size: 64,
+            color: theme.colorScheme.primary.withValues(alpha: 0.6),
+          ),
           const SizedBox(height: 16),
           Text('Пока нет привычек', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text('Добавьте привычку и стройте серии выполнения',
-              style: theme.textTheme.bodySmall),
+          Text(
+            'Добавьте привычку и стройте серии выполнения',
+            style: theme.textTheme.bodySmall,
+          ),
         ],
       ),
     );

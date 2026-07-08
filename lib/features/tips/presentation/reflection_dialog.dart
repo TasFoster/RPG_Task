@@ -22,6 +22,7 @@ Future<void> showReflectionDialog(
     builder: (ctx) {
       final theme = Theme.of(ctx);
       return AlertDialog(
+        scrollable: true,
         icon: Icon(icon, color: theme.colorScheme.primary),
         title: Text(title),
         content: Column(
@@ -31,23 +32,30 @@ Future<void> showReflectionDialog(
             Text(tip.text, style: theme.textTheme.bodyLarge),
             if (tip.author != null) ...[
               const SizedBox(height: 10),
-              Text('— ${tip.author}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  )),
+              Text(
+                '— ${tip.author}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.menu_book,
-                    size: 16, color: theme.colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.menu_book,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text('Сохранено в историю советов (Кодекс героя)',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      )),
+                  child: Text(
+                    'Сохранено в историю советов (Кодекс героя)',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
               ],
             ),

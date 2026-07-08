@@ -56,8 +56,9 @@ class SkillsScreen extends ConsumerWidget {
               children: [
                 Text(
                   'Прокачивайте оси жизни выполнением задач и привычек',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
@@ -65,19 +66,26 @@ class SkillsScreen extends ConsumerWidget {
                   child: RadarChart(
                     RadarChartData(
                       radarShape: RadarShape.polygon,
-                      tickCount: maxLevel < 4 ? 4 : maxLevel,
+                      tickCount: maxLevel.clamp(4, 6),
                       ticksTextStyle: const TextStyle(
-                          color: Colors.transparent, fontSize: 10),
+                        color: Colors.transparent,
+                        fontSize: 10,
+                      ),
                       radarBackgroundColor: Colors.transparent,
                       borderData: FlBorderData(show: false),
-                      radarBorderData:
-                          BorderSide(color: theme.dividerColor, width: 1),
-                      gridBorderData:
-                          BorderSide(color: theme.dividerColor, width: 1),
+                      radarBorderData: BorderSide(
+                        color: theme.dividerColor,
+                        width: 1,
+                      ),
+                      gridBorderData: BorderSide(
+                        color: theme.dividerColor,
+                        width: 1,
+                      ),
                       tickBorderData: BorderSide(
-                          color: theme.dividerColor.withValues(alpha: 0.5)),
+                        color: theme.dividerColor.withValues(alpha: 0.5),
+                      ),
                       getTitle: (index, angle) =>
-                          RadarChartTitle(text: axes[index].name),
+                          RadarChartTitle(text: _radarLabel(axes[index].name)),
                       titleTextStyle: theme.textTheme.labelMedium,
                       dataSets: [
                         RadarDataSet(
@@ -113,6 +121,11 @@ class SkillsScreen extends ConsumerWidget {
   }
 }
 
+/// Обрезает длинные имена осей для подписей радар-диаграммы, чтобы они не
+/// вылезали за края экрана (RadarChartTitle не поддерживает ellipsis).
+String _radarLabel(String s, [int max = 14]) =>
+    s.length <= max ? s : '${s.substring(0, max - 1)}…';
+
 class _AxisChip extends StatelessWidget {
   final SkillAxe axis;
   final int level;
@@ -126,7 +139,14 @@ class _AxisChip extends StatelessWidget {
         size: 18,
         color: Color(axis.colorValue),
       ),
-      label: Text('${axis.name}: ур. $level'),
+      label: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 220),
+        child: Text(
+          '${axis.name}: ур. $level',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
     );
   }
 }

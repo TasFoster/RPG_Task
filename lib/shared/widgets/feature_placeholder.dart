@@ -19,20 +19,25 @@ class FeaturePlaceholder extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 72, color: theme.colorScheme.primary),
               const SizedBox(height: 20),
-              Text(title, style: theme.textTheme.headlineSmall,
-                  textAlign: TextAlign.center),
+              Text(
+                title,
+                style: theme.textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 12),
               Text(
                 description,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

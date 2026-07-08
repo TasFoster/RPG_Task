@@ -25,81 +25,86 @@ class PomodoroSettingsSheet extends ConsumerWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Настройки помодоро', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 16),
-            Text('Пресеты', style: theme.textTheme.labelLarge),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                for (final p in kPomodoroPresets)
-                  ActionChip(
-                    label: Text(p.name),
-                    onPressed: () => notifier.save(settings.copyWith(
-                      workMinutes: p.work,
-                      shortBreakMinutes: p.shortBreak,
-                      longBreakMinutes: p.longBreak,
-                      cyclesBeforeLongBreak: p.cycles,
-                    )),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _Stepper(
-              label: 'Фокус (работа)',
-              value: settings.workMinutes,
-              min: 5,
-              max: 120,
-              step: 5,
-              unit: 'мин',
-              onChanged: (v) =>
-                  notifier.save(settings.copyWith(workMinutes: v)),
-            ),
-            _Stepper(
-              label: 'Короткий перерыв',
-              value: settings.shortBreakMinutes,
-              min: 1,
-              max: 30,
-              step: 1,
-              unit: 'мин',
-              onChanged: (v) =>
-                  notifier.save(settings.copyWith(shortBreakMinutes: v)),
-            ),
-            _Stepper(
-              label: 'Длинный перерыв',
-              value: settings.longBreakMinutes,
-              min: 5,
-              max: 60,
-              step: 5,
-              unit: 'мин',
-              onChanged: (v) =>
-                  notifier.save(settings.copyWith(longBreakMinutes: v)),
-            ),
-            _Stepper(
-              label: 'Циклов до длинного перерыва',
-              value: settings.cyclesBeforeLongBreak,
-              min: 2,
-              max: 8,
-              step: 1,
-              unit: '',
-              onChanged: (v) =>
-                  notifier.save(settings.copyWith(cyclesBeforeLongBreak: v)),
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Автостарт следующей фазы'),
-              subtitle: const Text(
-                  'Перерыв и работа запускаются автоматически'),
-              value: settings.autoStartNext,
-              onChanged: (v) =>
-                  notifier.save(settings.copyWith(autoStartNext: v)),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Настройки помодоро', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 16),
+              Text('Пресеты', style: theme.textTheme.labelLarge),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final p in kPomodoroPresets)
+                    ActionChip(
+                      label: Text(p.name),
+                      onPressed: () => notifier.save(
+                        settings.copyWith(
+                          workMinutes: p.work,
+                          shortBreakMinutes: p.shortBreak,
+                          longBreakMinutes: p.longBreak,
+                          cyclesBeforeLongBreak: p.cycles,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _Stepper(
+                label: 'Фокус (работа)',
+                value: settings.workMinutes,
+                min: 5,
+                max: 120,
+                step: 5,
+                unit: 'мин',
+                onChanged: (v) =>
+                    notifier.save(settings.copyWith(workMinutes: v)),
+              ),
+              _Stepper(
+                label: 'Короткий перерыв',
+                value: settings.shortBreakMinutes,
+                min: 1,
+                max: 30,
+                step: 1,
+                unit: 'мин',
+                onChanged: (v) =>
+                    notifier.save(settings.copyWith(shortBreakMinutes: v)),
+              ),
+              _Stepper(
+                label: 'Длинный перерыв',
+                value: settings.longBreakMinutes,
+                min: 5,
+                max: 60,
+                step: 5,
+                unit: 'мин',
+                onChanged: (v) =>
+                    notifier.save(settings.copyWith(longBreakMinutes: v)),
+              ),
+              _Stepper(
+                label: 'Циклов до длинного перерыва',
+                value: settings.cyclesBeforeLongBreak,
+                min: 2,
+                max: 8,
+                step: 1,
+                unit: '',
+                onChanged: (v) =>
+                    notifier.save(settings.copyWith(cyclesBeforeLongBreak: v)),
+              ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Автостарт следующей фазы'),
+                subtitle: const Text(
+                  'Перерыв и работа запускаются автоматически',
+                ),
+                value: settings.autoStartNext,
+                onChanged: (v) =>
+                    notifier.save(settings.copyWith(autoStartNext: v)),
+              ),
+            ],
+          ),
         ),
       ),
     );
