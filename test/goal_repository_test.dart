@@ -72,4 +72,58 @@ void main() {
         .getSingle();
     expect(profile.gems, 0);
   });
+
+  test('удаление невыполненного шага НЕ убивает босса', () async {
+    final id = await repo.createGoal(title: 'Дракон', isBoss: true);
+    await repo.addStep(
+        goalId: id, title: 'Шаг 1', difficulty: Difficulty.easy);
+    await repo.addStep(
+        goalId: id, title: 'Шаг 2', difficulty: Difficulty.easy);
+
+    var steps = await repo.watchSteps(id).first;
+    await repo.completeStep(steps.first);
+
+    steps = await repo.watchSteps(id).first;
+    final pending =
+        steps.firstWhere((s) => s.status == TaskStatus.pending);
+    await repo.softDeleteStep(pending);
+
+    final goal = await repo.watchGoal(id).first;
+    // Босс повержен только выполнением шагов, а не их удалением.
+    expect(goal!.status, GoalStatus.active);
+  });
+
+  test('completeStep сообщает о победе над боссом', () async {
+    final id = await repo.createGoal(title: 'Дракон', isBoss: true);
+    await repo.addStep(goalId: id, title: 'Шаг', difficulty: Difficulty.easy);
+    final steps = await repo.watchSteps(id).first;
+    final result = await repo.completeStep(steps.first);
+    expect(result.goalCompleted, isTrue);
+    expect(result.isBoss, isTrue);
+  });
+
+  test('снятие шага переоткрывает босса и откатывает награды', () async {
+    final id = await repo.createGoal(title: 'Дракон', isBoss: true);
+    await repo.addStep(goalId: id, title: 'Шаг', difficulty: Difficulty.easy);
+    var steps = await repo.watchSteps(id).first;
+    await repo.completeStep(steps.first);
+
+    steps = await repo.watchSteps(id).first;
+    await repo.uncompleteStep(steps.first);
+
+    final goal = await repo.watchGoal(id).first;
+    expect(goal!.status, GoalStatus.active);
+    expect(goal.hpRemaining, greaterThan(0));
+
+    final step = (await repo.watchSteps(id).first).first;
+    expect(step.status, TaskStatus.pending);
+
+    final profile = await (db.select(db.profiles)
+          ..where((p) => p.id.equals(kProfileId)))
+        .getSingle();
+    // Награда шага и бонус за босса (XP, золото, кристаллы) откатились.
+    expect(profile.gems, 0);
+    expect(profile.totalXp, 0);
+    expect(profile.gold, 0);
+  });
 }

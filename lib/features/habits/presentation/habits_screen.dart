@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/reward_service.dart';
 import '../../../shared/utils/icons.dart';
@@ -94,6 +95,8 @@ class _HabitTile extends ConsumerWidget {
     Future<void> complete() async {
       final reward = await ref.read(rewardServiceProvider).completeHabit(habit);
       if (reward != null) {
+        // Рыцарский звук: удар по доспеху.
+        ref.read(soundServiceProvider).play(AppSound.habitDone);
         // Активность открывает новую запись в Кодексе героя.
         await ref.read(codexRepositoryProvider).grantLoot();
         await updateHomeWidgets(ref.read(databaseProvider));
@@ -110,6 +113,7 @@ class _HabitTile extends ConsumerWidget {
           .read(rewardServiceProvider)
           .completeHabitOn(habit, yesterday);
       if (reward != null) {
+        ref.read(soundServiceProvider).play(AppSound.habitDone);
         await ref.read(codexRepositoryProvider).grantLoot();
         await updateHomeWidgets(ref.read(databaseProvider));
       }

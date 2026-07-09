@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../core/audio/sound_service.dart';
 import '../../profile/data/profile_repository.dart';
 import '../data/shop_catalog.dart';
 import '../data/shop_service.dart';
@@ -90,6 +91,10 @@ class _ShopTile extends ConsumerWidget {
 
     Future<void> buy() async {
       final result = await ref.read(shopServiceProvider).buy(item);
+      if (result == PurchaseResult.success) {
+        // Звон монет при удачной покупке.
+        ref.read(soundServiceProvider).play(AppSound.purchase);
+      }
       if (!context.mounted) return;
       final msg = switch (result) {
         PurchaseResult.success => 'Куплено: ${item.name}',

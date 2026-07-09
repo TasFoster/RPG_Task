@@ -5,15 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/audio/sound_service.dart';
 import '../core/database/database_provider.dart';
+import '../core/gamification/gamification_engine.dart';
 import '../core/notifications/notification_service.dart';
 import '../core/sync/sync_service.dart';
 import '../features/auth/data/auth_service.dart';
 import '../features/codex/data/codex_repository.dart';
+import '../features/profile/data/profile_repository.dart';
 import '../features/tips/data/tips_catalog.dart';
 import '../features/tips/presentation/reflection_dialog.dart';
 import '../features/widgets/home_widgets_service.dart';
 import '../l10n/app_localizations.dart';
+import '../shared/widgets/celebration.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -106,6 +110,8 @@ class _RpgTaskAppState extends ConsumerState<RpgTaskApp> {
     super.dispose();
   }
 
+  static const _engine = GamificationEngine();
+
   @override
   Widget build(BuildContext context) {
     // Синхронизация при входе в аккаунт (в т.ч. первичная при запуске, если
@@ -113,6 +119,22 @@ class _RpgTaskAppState extends ConsumerState<RpgTaskApp> {
     ref.listen<AsyncValue>(authUserProvider, (prev, next) {
       if (next.value != null) {
         ref.read(syncControllerProvider.notifier).syncNow();
+      }
+    });
+
+    // Новый уровень героя (из любого источника XP): фанфары + конфетти.
+    ref.listen(profileStreamProvider, (prev, next) {
+      final prevXp = prev?.value?.totalXp;
+      final nextXp = next.value?.totalXp;
+      if (prevXp == null || nextXp == null) return;
+      final prevLevel = _engine.levelForXp(prevXp);
+      final nextLevel = _engine.levelForXp(nextXp);
+      if (nextLevel > prevLevel) {
+        ref.read(soundServiceProvider).play(AppSound.levelUp);
+        final ctx = rootNavigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          showCelebration(ctx, style: CelebrationStyle.fireworks);
+        }
       }
     });
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/reward_service.dart';
 import '../../../core/models/enums.dart';
@@ -282,6 +283,8 @@ class _TaskTile extends ConsumerWidget {
 
     Future<void> complete() async {
       final reward = await ref.read(rewardServiceProvider).completeTask(task);
+      // Победный аккорд: фанфары + гонг.
+      ref.read(soundServiceProvider).play(AppSound.taskDone);
       // Задача выполнена — разовое напоминание больше не нужно.
       await ref.read(taskRepositoryProvider).cancelReminder(task.id);
       // Активность открывает новую запись в Кодексе героя.

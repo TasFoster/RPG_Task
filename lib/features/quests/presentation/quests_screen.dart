@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/models/enums.dart';
+import '../../../shared/widgets/celebration.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
 import '../data/quest_repository.dart';
 
@@ -64,6 +66,11 @@ class _QuestCard extends ConsumerWidget {
     Future<void> claim() async {
       final reward = await ref.read(questRepositoryProvider).claim(q);
       ref.invalidate(todayQuestsProvider);
+      if (reward != null) {
+        // Награда за квест: звук достижения + залп конфетти.
+        ref.read(soundServiceProvider).play(AppSound.questDone);
+        if (context.mounted) showCelebration(context);
+      }
       if (context.mounted && reward != null) {
         showRewardSnackBar(context, reward);
       }

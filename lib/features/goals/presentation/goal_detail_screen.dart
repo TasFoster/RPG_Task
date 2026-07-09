@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/balance.dart';
 import '../../../core/models/enums.dart';
 import '../../../shared/utils/labels.dart';
+import '../../../shared/widgets/celebration.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
 import '../data/goal_repository.dart';
 import 'goal_edit_dialog.dart';
@@ -194,8 +196,35 @@ class _StepTile extends ConsumerWidget {
     final done = step.status == TaskStatus.done;
 
     Future<void> complete() async {
-      final reward = await ref.read(goalRepositoryProvider).completeStep(step);
-      if (context.mounted) showRewardSnackBar(context, reward);
+      final result =
+          await ref.read(goalRepositoryProvider).completeStep(step);
+      final sounds = ref.read(soundServiceProvider);
+      if (!context.mounted) return;
+      if (result.goalCompleted && result.isBoss) {
+        // Босс повержен: аплодисменты + полноэкранный фейерверк.
+        sounds.play(AppSound.bossKilled);
+        showCelebration(context, style: CelebrationStyle.fireworks);
+      } else if (result.goalCompleted) {
+        sounds.play(AppSound.goalDone);
+        showCelebration(context);
+      } else {
+        // Обычный шаг — удар мечом.
+        sounds.play(AppSound.stepDone);
+      }
+      showRewardSnackBar(context, result.reward);
+    }
+
+    Future<void> uncomplete() async {
+      await ref.read(goalRepositoryProvider).uncompleteStep(step);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(
+              content: Text('Выполнение шага снято, награда возвращена'),
+            ),
+          );
+      }
     }
 
     void deleteStep() {
@@ -222,7 +251,8 @@ class _StepTile extends ConsumerWidget {
             ),
           ),
           color: done ? theme.colorScheme.primary : null,
-          onPressed: done ? null : complete,
+          tooltip: done ? 'Снять выполнение' : 'Выполнить',
+          onPressed: done ? uncomplete : complete,
         ),
         title: Text(
           step.title,
@@ -241,12 +271,19 @@ class _StepTile extends ConsumerWidget {
               case 'edit':
                 _showStepDialog(context, ref,
                     goalId: step.goalId, step: step);
+              case 'uncomplete':
+                uncomplete();
               case 'delete':
                 deleteStep();
             }
           },
           itemBuilder: (context) => [
             const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
+            if (done)
+              const PopupMenuItem(
+                value: 'uncomplete',
+                child: Text('Снять выполнение'),
+              ),
             const PopupMenuItem(value: 'delete', child: Text('Удалить')),
           ],
         ),

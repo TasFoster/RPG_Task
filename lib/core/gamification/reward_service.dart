@@ -238,6 +238,26 @@ class RewardService {
         () => _applyRewards(reward, reason: reason, refId: refId, axisId: axisId));
   }
 
+  /// Публичный откат ранее начисленной награды в одной транзакции
+  /// (например, при снятии выполнения шага цели).
+  Future<void> revokeReward({
+    required int xp,
+    required int gold,
+    int gems = 0,
+    required RewardReason reason,
+    String? refId,
+    String? axisId,
+  }) {
+    return db.transaction(() => _revokeRewards(
+          xp: xp,
+          gold: gold,
+          gems: gems,
+          reason: reason,
+          refId: refId,
+          axisId: axisId,
+        ));
+  }
+
   Future<void> _applyRewards(
     RewardResult reward, {
     required RewardReason reason,

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/gamification/gamification_engine.dart';
@@ -103,8 +104,12 @@ final achievementServiceProvider = Provider<AchievementService>((ref) {
 });
 
 /// Запускает проверку и возвращает множество разблокированных ключей.
+/// Новые разблокировки отмечаются победными барабанами.
 final achievementsProvider = FutureProvider<Set<String>>((ref) async {
   final service = ref.watch(achievementServiceProvider);
-  await service.checkAndUnlock();
+  final newly = await service.checkAndUnlock();
+  if (newly.isNotEmpty) {
+    ref.read(soundServiceProvider).play(AppSound.achievement);
+  }
   return service.unlockedKeys();
 });

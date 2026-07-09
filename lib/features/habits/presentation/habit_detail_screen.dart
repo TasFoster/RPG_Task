@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/database/database_provider.dart';
 import '../../../core/gamification/reward_service.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
@@ -95,6 +96,7 @@ class _BackfillYesterdayCard extends ConsumerWidget {
           .read(rewardServiceProvider)
           .completeHabitOn(habit, yesterday);
       if (reward != null) {
+        ref.read(soundServiceProvider).play(AppSound.habitDone);
         await ref.read(codexRepositoryProvider).grantLoot();
         await updateHomeWidgets(ref.read(databaseProvider));
       }

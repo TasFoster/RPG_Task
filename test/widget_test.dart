@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rpg_task/app/app.dart';
 import 'package:rpg_task/app/router/app_router.dart';
 import 'package:rpg_task/core/database/app_database.dart';
+import 'package:rpg_task/features/profile/data/profile_repository.dart';
 import 'package:rpg_task/features/tasks/data/task_repository.dart';
 import 'package:rpg_task/features/skills/data/skill_repository.dart';
 
@@ -23,6 +24,9 @@ void main() {
               .overrideWith((ref) => Stream.value(const <Task>[])),
           axesStreamProvider
               .overrideWith((ref) => Stream.value(const <SkillAxe>[])),
+          // Слушатель уровня героя в RpgTaskApp не должен трогать реальную БД.
+          profileStreamProvider
+              .overrideWith((ref) => Stream<Profile?>.value(null)),
         ],
         child: RpgTaskApp(router: buildAppRouter()),
       ),

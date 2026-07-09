@@ -11,6 +11,19 @@ import '../../../core/models/enums.dart';
 
 const _uuid = Uuid();
 
+/// Результат выполнения шага: награда + факт завершения всей цели
+/// (для звуков/анимаций победы в UI).
+class StepCompletionResult {
+  final RewardResult reward;
+  final bool goalCompleted;
+  final bool isBoss;
+  const StepCompletionResult({
+    required this.reward,
+    required this.goalCompleted,
+    required this.isBoss,
+  });
+}
+
 /// Доступ к целям и боссам. HP босса — производная от ожидаемого XP шагов:
 /// hpRemaining пересчитывается как «босс-HP невыполненных шагов».
 class GoalRepository {
@@ -93,8 +106,9 @@ class GoalRepository {
 
   /// Выполнение шага: начисляет XP, наносит урон боссу, при завершении
   /// всех шагов закрывает цель (босс — с бонусом и кристаллами).
-  Future<RewardResult> completeStep(GoalStep step) async {
+  Future<StepCompletionResult> completeStep(GoalStep step) async {
     final goal = await _goalById(step.goalId);
+    final wasCompleted = goal?.status == GoalStatus.completed;
 
     // Награда за сам шаг — обычная (без множителя/кристаллов босса).
     // Кристаллы и бонус за босса начисляются только при убийстве.
@@ -117,7 +131,72 @@ class GoalRepository {
     );
     await _recomputeHp(step.goalId);
     await _maybeComplete(step.goalId);
-    return reward;
+
+    final after = await _goalById(step.goalId);
+    return StepCompletionResult(
+      reward: reward,
+      goalCompleted:
+          !wasCompleted && after?.status == GoalStatus.completed,
+      isBoss: after?.isBoss ?? false,
+    );
+  }
+
+  /// Снятие выполнения шага: возвращает шаг в активные, откатывает награду.
+  /// Если цель была завершена — переоткрывает её; у босса дополнительно
+  /// откатывается бонус за победу (босс не может быть «повержен» с HP > 0).
+  Future<void> uncompleteStep(GoalStep step) async {
+    if (step.status != TaskStatus.done) return;
+    final goal = await _goalById(step.goalId);
+
+    // Откатываем ровно то, что начислялось за шаг (расчёт идентичен
+    // completeStep: множители серии/регулярности к шагам не применяются).
+    final reward = engine.reward(RewardInput(
+      type: ActivityType.goalStep,
+      difficulty: step.difficulty,
+      frequency: Frequency.rare,
+      estimatedMinutes: step.estimatedMinutes,
+    ));
+    await rewards.revokeReward(
+      xp: reward.xp,
+      gold: reward.gold,
+      reason: RewardReason.manual,
+      refId: step.id,
+      axisId: goal?.axisId,
+    );
+
+    await (db.update(db.goalSteps)..where((s) => s.id.equals(step.id))).write(
+      GoalStepsCompanion(
+        status: const Value(TaskStatus.pending),
+        completedAt: const Value(null),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+
+    // Цель снова «в бою»: у босса появилось HP — победа отменяется.
+    if (goal != null && goal.status == GoalStatus.completed) {
+      if (goal.isBoss) {
+        final bonusXp = engine.bossKillBonus(goal.hpTotal);
+        await rewards.revokeReward(
+          xp: bonusXp,
+          gold: (bonusXp * engine.b.goldPerXp).round(),
+          gems: engine.b.gemsBossKill,
+          reason: RewardReason.manual,
+          refId: goal.id,
+          axisId: goal.axisId,
+        );
+      }
+      await (db.update(db.goals)..where((g) => g.id.equals(goal.id))).write(
+        GoalsCompanion(
+          status: const Value(GoalStatus.active),
+          completedAt: const Value(null),
+          dirty: const Value(true),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+    }
+
+    await _recomputeHp(step.goalId);
   }
 
   Future<void> softDeleteGoal(String id) {
@@ -192,8 +271,8 @@ class GoalRepository {
     await _recomputeHp(step.goalId);
   }
 
-  /// Мягкое удаление шага. HP пересчитывается; если удалён последний
-  /// невыполненный шаг — цель закрывается (как при добитии HP до нуля).
+  /// Мягкое удаление шага. HP пересчитывается, но цель НЕ закрывается:
+  /// босс может быть повержен только выполнением шагов, а не их удалением.
   Future<void> softDeleteStep(GoalStep step) async {
     await (db.update(db.goalSteps)..where((s) => s.id.equals(step.id))).write(
       GoalStepsCompanion(
@@ -203,7 +282,6 @@ class GoalRepository {
       ),
     );
     await _recomputeHp(step.goalId);
-    await _maybeComplete(step.goalId);
   }
 
   // ---- Внутреннее ----

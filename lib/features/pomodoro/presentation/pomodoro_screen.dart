@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/gamification/reward_service.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
 import '../../tips/data/tip.dart';
@@ -43,6 +44,8 @@ class PomodoroScreen extends ConsumerWidget {
         final reward = await ref
             .read(rewardServiceProvider)
             .awardFocusSession(minutes: (workedSeconds + 30) ~/ 60);
+        // Колокольчики: фокус-сессия завершена.
+        ref.read(soundServiceProvider).play(AppSound.pomodoroDone);
         if (context.mounted) showRewardSnackBar(context, reward);
       }
     });

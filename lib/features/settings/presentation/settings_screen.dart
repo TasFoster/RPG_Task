@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/audio/sound_service.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../../auth/data/auth_service.dart';
 import '../../tips/data/tips_push.dart';
@@ -97,6 +98,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/account'),
                 );
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text('Звуки и эффекты', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.music_note_outlined),
+              title: const Text('Звуки действий'),
+              subtitle: const Text(
+                'Фанфары, гонг, удары мечом и аплодисменты за победы',
+              ),
+              value: ref.watch(soundsEnabledProvider),
+              onChanged: (v) {
+                ref.read(soundsEnabledProvider.notifier).setEnabled(v);
+                // Мгновенная обратная связь при включении.
+                if (v) ref.read(soundServiceProvider).play(AppSound.questDone);
               },
             ),
           ),
