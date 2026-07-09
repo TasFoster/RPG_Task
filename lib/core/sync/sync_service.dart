@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../database/app_database.dart';
 import '../database/database_provider.dart';
+import '../gamification/ledger_reconciliation.dart';
 import 'supabase_config.dart';
 
 /// Имя таблицы-хранилища на стороне Supabase (одна на все локальные таблицы).
@@ -72,6 +73,7 @@ List<SyncEntity> syncEntities(AppDatabase db) => [
       SyncEntity(db.tasks),
       SyncEntity(db.habitLogs),
       SyncEntity(db.goalSteps),
+      SyncEntity(db.goalSubSteps), // FK: goal_sub_steps.stepId → goal_steps
       SyncEntity(db.dailyQuests),
       SyncEntity(db.userAchievements),
       SyncEntity(db.inventoryItems),
@@ -128,6 +130,11 @@ class SyncController extends Notifier<SyncState> {
       await _ensureSameUser(db);
       final pushed = await _pushAll(db);
       final (received, applied) = await _pullAll(db);
+      // После пула журнал мог разойтись со счётчиками (last-write-wins
+      // по строке профиля) — неточности закрываются корректировками.
+      if (applied > 0) {
+        await LedgerReconciliation(db).reconcile();
+      }
       if (kDebugMode) {
         debugPrint(
             'Sync OK: отправлено $pushed, получено $received, применено $applied');

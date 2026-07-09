@@ -19,6 +19,7 @@ part 'app_database.g.dart';
     CurrencyTransactions,
     Goals,
     GoalSteps,
+    GoalSubSteps,
     DailyQuests,
     UserAchievements,
     InventoryItems,
@@ -36,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -84,6 +85,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 7) {
             await m.addColumn(tasks, tasks.archivedAt);
             await m.addColumn(notes, notes.archivedAt);
+          }
+          // v7 → v8: подшаги шагов целей/боссов.
+          if (from < 8) {
+            await m.createTable(goalSubSteps);
           }
         },
         beforeOpen: (details) async {

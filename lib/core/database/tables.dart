@@ -204,6 +204,19 @@ class GoalSteps extends Table with _SyncColumns {
   Set<Column> get primaryKey => {id};
 }
 
+/// Подшаги (чек-лист) шага цели. Награды не дают — служат разбивкой
+/// крупного шага на мелкие действия; прогресс виден на плитке шага.
+class GoalSubSteps extends Table with _SyncColumns {
+  TextColumn get stepId => text().references(GoalSteps, #id)();
+  TextColumn get title => text()();
+  BoolColumn get done => boolean().withDefault(const Constant(false))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Ежедневные квесты. Прогресс считается динамически из данных за день;
 /// в строке хранится только цель, награда и факт получения награды.
 class DailyQuests extends Table with _SyncColumns {

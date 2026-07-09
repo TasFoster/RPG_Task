@@ -5726,6 +5726,558 @@ class GoalStepsCompanion extends UpdateCompanion<GoalStep> {
   }
 }
 
+class $GoalSubStepsTable extends GoalSubSteps
+    with TableInfo<$GoalSubStepsTable, GoalSubStep> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalSubStepsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _dirtyMeta = const VerificationMeta('dirty');
+  @override
+  late final GeneratedColumn<bool> dirty = GeneratedColumn<bool>(
+    'dirty',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("dirty" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _stepIdMeta = const VerificationMeta('stepId');
+  @override
+  late final GeneratedColumn<String> stepId = GeneratedColumn<String>(
+    'step_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES goal_steps (id)',
+    ),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _doneMeta = const VerificationMeta('done');
+  @override
+  late final GeneratedColumn<bool> done = GeneratedColumn<bool>(
+    'done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("done" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    updatedAt,
+    isDeleted,
+    dirty,
+    stepId,
+    title,
+    done,
+    sortOrder,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goal_sub_steps';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GoalSubStep> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('dirty')) {
+      context.handle(
+        _dirtyMeta,
+        dirty.isAcceptableOrUnknown(data['dirty']!, _dirtyMeta),
+      );
+    }
+    if (data.containsKey('step_id')) {
+      context.handle(
+        _stepIdMeta,
+        stepId.isAcceptableOrUnknown(data['step_id']!, _stepIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stepIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('done')) {
+      context.handle(
+        _doneMeta,
+        done.isAcceptableOrUnknown(data['done']!, _doneMeta),
+      );
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GoalSubStep map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalSubStep(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      dirty: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}dirty'],
+      )!,
+      stepId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}step_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      done: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}done'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $GoalSubStepsTable createAlias(String alias) {
+    return $GoalSubStepsTable(attachedDatabase, alias);
+  }
+}
+
+class GoalSubStep extends DataClass implements Insertable<GoalSubStep> {
+  final String id;
+  final DateTime updatedAt;
+  final bool isDeleted;
+  final bool dirty;
+  final String stepId;
+  final String title;
+  final bool done;
+  final int sortOrder;
+  final DateTime createdAt;
+  const GoalSubStep({
+    required this.id,
+    required this.updatedAt,
+    required this.isDeleted,
+    required this.dirty,
+    required this.stepId,
+    required this.title,
+    required this.done,
+    required this.sortOrder,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['dirty'] = Variable<bool>(dirty);
+    map['step_id'] = Variable<String>(stepId);
+    map['title'] = Variable<String>(title);
+    map['done'] = Variable<bool>(done);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  GoalSubStepsCompanion toCompanion(bool nullToAbsent) {
+    return GoalSubStepsCompanion(
+      id: Value(id),
+      updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
+      dirty: Value(dirty),
+      stepId: Value(stepId),
+      title: Value(title),
+      done: Value(done),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory GoalSubStep.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalSubStep(
+      id: serializer.fromJson<String>(json['id']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      dirty: serializer.fromJson<bool>(json['dirty']),
+      stepId: serializer.fromJson<String>(json['stepId']),
+      title: serializer.fromJson<String>(json['title']),
+      done: serializer.fromJson<bool>(json['done']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'dirty': serializer.toJson<bool>(dirty),
+      'stepId': serializer.toJson<String>(stepId),
+      'title': serializer.toJson<String>(title),
+      'done': serializer.toJson<bool>(done),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  GoalSubStep copyWith({
+    String? id,
+    DateTime? updatedAt,
+    bool? isDeleted,
+    bool? dirty,
+    String? stepId,
+    String? title,
+    bool? done,
+    int? sortOrder,
+    DateTime? createdAt,
+  }) => GoalSubStep(
+    id: id ?? this.id,
+    updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
+    dirty: dirty ?? this.dirty,
+    stepId: stepId ?? this.stepId,
+    title: title ?? this.title,
+    done: done ?? this.done,
+    sortOrder: sortOrder ?? this.sortOrder,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  GoalSubStep copyWithCompanion(GoalSubStepsCompanion data) {
+    return GoalSubStep(
+      id: data.id.present ? data.id.value : this.id,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      dirty: data.dirty.present ? data.dirty.value : this.dirty,
+      stepId: data.stepId.present ? data.stepId.value : this.stepId,
+      title: data.title.present ? data.title.value : this.title,
+      done: data.done.present ? data.done.value : this.done,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalSubStep(')
+          ..write('id: $id, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('stepId: $stepId, ')
+          ..write('title: $title, ')
+          ..write('done: $done, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    updatedAt,
+    isDeleted,
+    dirty,
+    stepId,
+    title,
+    done,
+    sortOrder,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalSubStep &&
+          other.id == this.id &&
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted &&
+          other.dirty == this.dirty &&
+          other.stepId == this.stepId &&
+          other.title == this.title &&
+          other.done == this.done &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt);
+}
+
+class GoalSubStepsCompanion extends UpdateCompanion<GoalSubStep> {
+  final Value<String> id;
+  final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
+  final Value<bool> dirty;
+  final Value<String> stepId;
+  final Value<String> title;
+  final Value<bool> done;
+  final Value<int> sortOrder;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const GoalSubStepsCompanion({
+    this.id = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    this.stepId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.done = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GoalSubStepsCompanion.insert({
+    required String id,
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.dirty = const Value.absent(),
+    required String stepId,
+    required String title,
+    this.done = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       stepId = Value(stepId),
+       title = Value(title);
+  static Insertable<GoalSubStep> custom({
+    Expression<String>? id,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
+    Expression<bool>? dirty,
+    Expression<String>? stepId,
+    Expression<String>? title,
+    Expression<bool>? done,
+    Expression<int>? sortOrder,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (dirty != null) 'dirty': dirty,
+      if (stepId != null) 'step_id': stepId,
+      if (title != null) 'title': title,
+      if (done != null) 'done': done,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GoalSubStepsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
+    Value<bool>? dirty,
+    Value<String>? stepId,
+    Value<String>? title,
+    Value<bool>? done,
+    Value<int>? sortOrder,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return GoalSubStepsCompanion(
+      id: id ?? this.id,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      dirty: dirty ?? this.dirty,
+      stepId: stepId ?? this.stepId,
+      title: title ?? this.title,
+      done: done ?? this.done,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (dirty.present) {
+      map['dirty'] = Variable<bool>(dirty.value);
+    }
+    if (stepId.present) {
+      map['step_id'] = Variable<String>(stepId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (done.present) {
+      map['done'] = Variable<bool>(done.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalSubStepsCompanion(')
+          ..write('id: $id, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('dirty: $dirty, ')
+          ..write('stepId: $stepId, ')
+          ..write('title: $title, ')
+          ..write('done: $done, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DailyQuestsTable extends DailyQuests
     with TableInfo<$DailyQuestsTable, DailyQuest> {
   @override
@@ -10404,6 +10956,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $CurrencyTransactionsTable(this);
   late final $GoalsTable goals = $GoalsTable(this);
   late final $GoalStepsTable goalSteps = $GoalStepsTable(this);
+  late final $GoalSubStepsTable goalSubSteps = $GoalSubStepsTable(this);
   late final $DailyQuestsTable dailyQuests = $DailyQuestsTable(this);
   late final $UserAchievementsTable userAchievements = $UserAchievementsTable(
     this,
@@ -10427,6 +10980,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     currencyTransactions,
     goals,
     goalSteps,
+    goalSubSteps,
     dailyQuests,
     userAchievements,
     inventoryItems,
@@ -13899,6 +14453,24 @@ final class $$GoalStepsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$GoalSubStepsTable, List<GoalSubStep>>
+  _goalSubStepsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.goalSubSteps,
+    aliasName: 'goal_steps__id__goal_sub_steps__step_id',
+  );
+
+  $$GoalSubStepsTableProcessedTableManager get goalSubStepsRefs {
+    final manager = $$GoalSubStepsTableTableManager(
+      $_db,
+      $_db.goalSubSteps,
+    ).filter((f) => f.stepId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_goalSubStepsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$GoalStepsTableFilterComposer
@@ -13993,6 +14565,31 @@ class $$GoalStepsTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> goalSubStepsRefs(
+    Expression<bool> Function($$GoalSubStepsTableFilterComposer f) f,
+  ) {
+    final $$GoalSubStepsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.goalSubSteps,
+      getReferencedColumn: (t) => t.stepId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalSubStepsTableFilterComposer(
+            $db: $db,
+            $table: $db.goalSubSteps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -14165,6 +14762,31 @@ class $$GoalStepsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> goalSubStepsRefs<T extends Object>(
+    Expression<T> Function($$GoalSubStepsTableAnnotationComposer a) f,
+  ) {
+    final $$GoalSubStepsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.goalSubSteps,
+      getReferencedColumn: (t) => t.stepId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalSubStepsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.goalSubSteps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$GoalStepsTableTableManager
@@ -14180,7 +14802,7 @@ class $$GoalStepsTableTableManager
           $$GoalStepsTableUpdateCompanionBuilder,
           (GoalStep, $$GoalStepsTableReferences),
           GoalStep,
-          PrefetchHooks Function({bool goalId})
+          PrefetchHooks Function({bool goalId, bool goalSubStepsRefs})
         > {
   $$GoalStepsTableTableManager(_$AppDatabase db, $GoalStepsTable table)
     : super(
@@ -14265,10 +14887,10 @@ class $$GoalStepsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({goalId = false}) {
+          prefetchHooksCallback: ({goalId = false, goalSubStepsRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [],
+              explicitlyWatchedTables: [if (goalSubStepsRefs) db.goalSubSteps],
               addJoins:
                   <
                     T extends TableManagerState<
@@ -14302,7 +14924,27 @@ class $$GoalStepsTableTableManager
                     return state;
                   },
               getPrefetchedDataCallback: (items) async {
-                return [];
+                return [
+                  if (goalSubStepsRefs)
+                    await $_getPrefetchedData<
+                      GoalStep,
+                      $GoalStepsTable,
+                      GoalSubStep
+                    >(
+                      currentTable: table,
+                      referencedTable: $$GoalStepsTableReferences
+                          ._goalSubStepsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$GoalStepsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).goalSubStepsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.stepId == item.id),
+                      typedResults: items,
+                    ),
+                ];
               },
             );
           },
@@ -14322,7 +14964,400 @@ typedef $$GoalStepsTableProcessedTableManager =
       $$GoalStepsTableUpdateCompanionBuilder,
       (GoalStep, $$GoalStepsTableReferences),
       GoalStep,
-      PrefetchHooks Function({bool goalId})
+      PrefetchHooks Function({bool goalId, bool goalSubStepsRefs})
+    >;
+typedef $$GoalSubStepsTableCreateCompanionBuilder =
+    GoalSubStepsCompanion Function({
+      required String id,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> dirty,
+      required String stepId,
+      required String title,
+      Value<bool> done,
+      Value<int> sortOrder,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$GoalSubStepsTableUpdateCompanionBuilder =
+    GoalSubStepsCompanion Function({
+      Value<String> id,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> dirty,
+      Value<String> stepId,
+      Value<String> title,
+      Value<bool> done,
+      Value<int> sortOrder,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$GoalSubStepsTableReferences
+    extends BaseReferences<_$AppDatabase, $GoalSubStepsTable, GoalSubStep> {
+  $$GoalSubStepsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $GoalStepsTable _stepIdTable(_$AppDatabase db) =>
+      db.goalSteps.createAlias('goal_sub_steps__step_id__goal_steps__id');
+
+  $$GoalStepsTableProcessedTableManager get stepId {
+    final $_column = $_itemColumn<String>('step_id')!;
+
+    final manager = $$GoalStepsTableTableManager(
+      $_db,
+      $_db.goalSteps,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_stepIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$GoalSubStepsTableFilterComposer
+    extends Composer<_$AppDatabase, $GoalSubStepsTable> {
+  $$GoalSubStepsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get done => $composableBuilder(
+    column: $table.done,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$GoalStepsTableFilterComposer get stepId {
+    final $$GoalStepsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.stepId,
+      referencedTable: $db.goalSteps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalStepsTableFilterComposer(
+            $db: $db,
+            $table: $db.goalSteps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GoalSubStepsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GoalSubStepsTable> {
+  $$GoalSubStepsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get dirty => $composableBuilder(
+    column: $table.dirty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get done => $composableBuilder(
+    column: $table.done,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$GoalStepsTableOrderingComposer get stepId {
+    final $$GoalStepsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.stepId,
+      referencedTable: $db.goalSteps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalStepsTableOrderingComposer(
+            $db: $db,
+            $table: $db.goalSteps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GoalSubStepsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GoalSubStepsTable> {
+  $$GoalSubStepsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get dirty =>
+      $composableBuilder(column: $table.dirty, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<bool> get done =>
+      $composableBuilder(column: $table.done, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$GoalStepsTableAnnotationComposer get stepId {
+    final $$GoalStepsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.stepId,
+      referencedTable: $db.goalSteps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GoalStepsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.goalSteps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$GoalSubStepsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GoalSubStepsTable,
+          GoalSubStep,
+          $$GoalSubStepsTableFilterComposer,
+          $$GoalSubStepsTableOrderingComposer,
+          $$GoalSubStepsTableAnnotationComposer,
+          $$GoalSubStepsTableCreateCompanionBuilder,
+          $$GoalSubStepsTableUpdateCompanionBuilder,
+          (GoalSubStep, $$GoalSubStepsTableReferences),
+          GoalSubStep,
+          PrefetchHooks Function({bool stepId})
+        > {
+  $$GoalSubStepsTableTableManager(_$AppDatabase db, $GoalSubStepsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalSubStepsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalSubStepsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalSubStepsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                Value<String> stepId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<bool> done = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalSubStepsCompanion(
+                id: id,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                dirty: dirty,
+                stepId: stepId,
+                title: title,
+                done: done,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> dirty = const Value.absent(),
+                required String stepId,
+                required String title,
+                Value<bool> done = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalSubStepsCompanion.insert(
+                id: id,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                dirty: dirty,
+                stepId: stepId,
+                title: title,
+                done: done,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$GoalSubStepsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({stepId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (stepId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.stepId,
+                                referencedTable: $$GoalSubStepsTableReferences
+                                    ._stepIdTable(db),
+                                referencedColumn: $$GoalSubStepsTableReferences
+                                    ._stepIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$GoalSubStepsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GoalSubStepsTable,
+      GoalSubStep,
+      $$GoalSubStepsTableFilterComposer,
+      $$GoalSubStepsTableOrderingComposer,
+      $$GoalSubStepsTableAnnotationComposer,
+      $$GoalSubStepsTableCreateCompanionBuilder,
+      $$GoalSubStepsTableUpdateCompanionBuilder,
+      (GoalSubStep, $$GoalSubStepsTableReferences),
+      GoalSubStep,
+      PrefetchHooks Function({bool stepId})
     >;
 typedef $$DailyQuestsTableCreateCompanionBuilder =
     DailyQuestsCompanion Function({
@@ -16786,6 +17821,8 @@ class $AppDatabaseManager {
       $$GoalsTableTableManager(_db, _db.goals);
   $$GoalStepsTableTableManager get goalSteps =>
       $$GoalStepsTableTableManager(_db, _db.goalSteps);
+  $$GoalSubStepsTableTableManager get goalSubSteps =>
+      $$GoalSubStepsTableTableManager(_db, _db.goalSubSteps);
   $$DailyQuestsTableTableManager get dailyQuests =>
       $$DailyQuestsTableTableManager(_db, _db.dailyQuests);
   $$UserAchievementsTableTableManager get userAchievements =>

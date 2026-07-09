@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/gamification/ledger_reconciliation.dart';
 import '../../../core/models/enums.dart';
 import '../../../shared/utils/labels.dart';
 import '../../profile/data/profile_repository.dart';
@@ -75,6 +76,14 @@ class RewardLogScreen extends ConsumerStatefulWidget {
 
 class _RewardLogScreenState extends ConsumerState<RewardLogScreen> {
   CurrencyKind? _filter; // null — все валюты
+
+  @override
+  void initState() {
+    super.initState();
+    // Неточности журнала закрываются автоматически при открытии экрана.
+    Future.microtask(
+        () => ref.read(ledgerReconciliationProvider).reconcile());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,6 +206,13 @@ class _ReconciliationCard extends ConsumerWidget {
                 totals[CurrencyKind.xp] ?? 0, profile.lifetimeXp),
             row('Золото', totals[CurrencyKind.gold] ?? 0, profile.gold),
             row('Кристаллы', totals[CurrencyKind.gems] ?? 0, profile.gems),
+            const SizedBox(height: 4),
+            Text(
+              'Расхождения закрываются автоматически записями «Корректировка».',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),

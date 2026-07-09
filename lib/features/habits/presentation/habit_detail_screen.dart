@@ -8,6 +8,7 @@ import '../../../shared/widgets/reward_snackbar.dart';
 import '../../codex/data/codex_repository.dart';
 import '../../widgets/home_widgets_service.dart';
 import '../data/habit_repository.dart';
+import 'add_habit_dialog.dart';
 import 'habit_heatmap_card.dart';
 
 /// Экран детали привычки: хитмап выполнений и статистика серий.
@@ -23,6 +24,17 @@ class HabitDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(habitAsync.value?.title ?? 'Привычка'),
+        actions: [
+          if (habitAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Редактировать',
+              onPressed: () => showDialog(
+                context: context,
+                builder: (_) => AddHabitDialog(habit: habitAsync.value),
+              ),
+            ),
+        ],
       ),
       body: habitAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

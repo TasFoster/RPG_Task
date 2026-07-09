@@ -55,6 +55,38 @@ class HabitRepository {
     }
   }
 
+  /// Редактирование привычки. Напоминание перепланируется (или снимается).
+  /// Смена сложности/периодичности влияет только на будущие награды.
+  Future<void> updateHabit({
+    required String id,
+    required String title,
+    String? axisId,
+    Frequency frequency = Frequency.daily,
+    Difficulty difficulty = Difficulty.auto,
+    int? reminderMinutes,
+  }) async {
+    await (db.update(db.habits)..where((h) => h.id.equals(id))).write(
+      HabitsCompanion(
+        title: Value(title),
+        axisId: Value(axisId),
+        frequency: Value(frequency),
+        difficulty: Value(difficulty),
+        reminderMinutes: Value(reminderMinutes),
+        dirty: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+    if (reminderMinutes != null) {
+      await notifications.scheduleDailyHabitReminder(
+        entityId: id,
+        title: title,
+        minuteOfDay: reminderMinutes,
+      );
+    } else {
+      await notifications.cancel(id);
+    }
+  }
+
   /// Дата без времени (ключ дня для хитмапа).
   static DateTime dayOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 

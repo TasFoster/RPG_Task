@@ -207,6 +207,95 @@ class RewardService {
     });
   }
 
+  /// Отмена сегодняшней отметки привычки (случайное нажатие): откатывает
+  /// начисленные XP/золото, помечает записи журнала удалёнными и
+  /// пересчитывает серии из оставшихся отметок. Возвращает false, если
+  /// за сегодня отметки нет.
+  Future<bool> uncompleteHabitToday(Habit habit) {
+    return db.transaction(() async {
+      final now = DateTime.now();
+      final today = _dateOnly(now);
+
+      final logs = await (db.select(db.habitLogs)
+            ..where((l) =>
+                l.habitId.equals(habit.id) &
+                l.isDeleted.equals(false) &
+                l.value.isBiggerThanValue(0)))
+          .get();
+      final todayLogs =
+          logs.where((l) => _dateOnly(l.completedAt) == today).toList();
+      if (todayLogs.isEmpty) return false;
+
+      // Откатываем ровно то, что было начислено сегодняшними записями.
+      var xp = 0;
+      var gold = 0;
+      for (final l in todayLogs) {
+        xp += l.xp;
+        gold += l.gold;
+      }
+      await _revokeRewards(
+        xp: xp,
+        gold: gold,
+        reason: RewardReason.manual,
+        refId: habit.id,
+        axisId: habit.axisId,
+      );
+
+      for (final l in todayLogs) {
+        await (db.update(db.habitLogs)..where((r) => r.id.equals(l.id))).write(
+          HabitLogsCompanion(
+            isDeleted: const Value(true),
+            dirty: const Value(true),
+            updatedAt: Value(now),
+          ),
+        );
+      }
+
+      // Серии пересчитываются из оставшихся дней журнала: текущая — от вчера
+      // назад (день ещё не кончился), рекорд — самый длинный непрерывный
+      // отрезок за всю историю.
+      final days = {
+        for (final l in logs)
+          if (_dateOnly(l.completedAt) != today) _dateOnly(l.completedAt),
+      };
+      var cursor = today.subtract(const Duration(days: 1));
+      var newStreak = 0;
+      while (days.contains(cursor)) {
+        newStreak++;
+        cursor = cursor.subtract(const Duration(days: 1));
+      }
+
+      var best = 0;
+      final sorted = days.toList()..sort();
+      var run = 0;
+      DateTime? prev;
+      for (final d in sorted) {
+        run = (prev != null && d.difference(prev).inDays == 1) ? run + 1 : 1;
+        prev = d;
+        best = math.max(best, run);
+      }
+
+      DateTime? newLast;
+      for (final l in logs) {
+        if (_dateOnly(l.completedAt) == today) continue;
+        if (newLast == null || l.completedAt.isAfter(newLast)) {
+          newLast = l.completedAt;
+        }
+      }
+
+      await (db.update(db.habits)..where((h) => h.id.equals(habit.id))).write(
+        HabitsCompanion(
+          streakCurrent: Value(newStreak),
+          streakBest: Value(best),
+          lastCompletedAt: Value(newLast),
+          dirty: const Value(true),
+          updatedAt: Value(now),
+        ),
+      );
+      return true;
+    });
+  }
+
   /// Начисление за завершённый фокус-сеанс (помодоро) на [minutes] минут.
   /// Опционально относится к оси навыка [axisId].
   Future<RewardResult> awardFocusSession({

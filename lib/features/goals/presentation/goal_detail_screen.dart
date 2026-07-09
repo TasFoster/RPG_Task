@@ -5,9 +5,12 @@ import '../../../core/audio/sound_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/gamification/balance.dart';
 import '../../../core/models/enums.dart';
+import '../../../shared/utils/icons.dart';
 import '../../../shared/utils/labels.dart';
 import '../../../shared/widgets/celebration.dart';
 import '../../../shared/widgets/reward_snackbar.dart';
+import '../../skills/data/skill_repository.dart';
+import '../../tasks/data/task_repository.dart';
 import '../data/goal_repository.dart';
 import 'goal_edit_dialog.dart';
 
@@ -49,6 +52,13 @@ class GoalDetailScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final goalAsync = ref.watch(goalStreamProvider(goalId));
     final stepsAsync = ref.watch(goalStepsStreamProvider(goalId));
+    final subStepsByStep =
+        ref.watch(goalSubStepsStreamProvider(goalId)).value ??
+            const <String, List<GoalSubStep>>{};
+    final axesById = {
+      for (final a in ref.watch(axesStreamProvider).value ?? const <SkillAxe>[])
+        a.id: a,
+    };
 
     return Scaffold(
       appBar: AppBar(
@@ -92,6 +102,7 @@ class GoalDetailScreen extends ConsumerWidget {
             return const Center(child: Text('Цель не найдена'));
           }
           final steps = stepsAsync.value ?? const <GoalStep>[];
+          final axis = axesById[goal.axisId];
           final doneCount =
               steps.where((s) => s.status == TaskStatus.done).length;
           final hpFrac = goal.hpTotal == 0
@@ -129,6 +140,30 @@ class GoalDetailScreen extends ConsumerWidget {
                             ),
                         ],
                       ),
+                      if (axis != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              materialIcon(axis.iconCodePoint),
+                              size: 16,
+                              color: Color(axis.colorValue),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'Ось: ${axis.name}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Color(axis.colorValue),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       if (goal.notes != null &&
                           goal.notes!.trim().isNotEmpty) ...[
                         const SizedBox(height: 8),
@@ -177,7 +212,12 @@ class GoalDetailScreen extends ConsumerWidget {
                 )
               else
                 for (final step in steps)
-                  _StepTile(step: step),
+                  _StepTile(
+                    step: step,
+                    goal: goal,
+                    subSteps:
+                        subStepsByStep[step.id] ?? const <GoalSubStep>[],
+                  ),
             ],
           );
         },
@@ -188,12 +228,19 @@ class GoalDetailScreen extends ConsumerWidget {
 
 class _StepTile extends ConsumerWidget {
   final GoalStep step;
-  const _StepTile({required this.step});
+  final Goal goal;
+  final List<GoalSubStep> subSteps;
+  const _StepTile({
+    required this.step,
+    required this.goal,
+    required this.subSteps,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final done = step.status == TaskStatus.done;
+    final subDone = subSteps.where((s) => s.done).length;
 
     Future<void> complete() async {
       final result =
@@ -237,59 +284,227 @@ class _StepTile extends ConsumerWidget {
         );
     }
 
+    // Одна кнопка — и шаг босса становится обычной задачей (наследует
+    // сложность, время и ось цели).
+    Future<void> createTask() async {
+      await ref.read(taskRepositoryProvider).addTask(
+            title: step.title,
+            notes: 'Из шагов «${goal.title}»',
+            axisId: goal.axisId,
+            difficulty: step.difficulty,
+            estimatedMinutes: step.estimatedMinutes,
+          );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(content: Text('Задача создана: ${step.title}')),
+          );
+      }
+    }
+
+    final subtitleParts = [
+      '${difficultyLabel(step.difficulty)} · ${step.estimatedMinutes} мин · ~${step.expectedXp} XP',
+      if (subSteps.isNotEmpty) 'подшаги: $subDone/${subSteps.length}',
+    ];
+
     return Card(
       margin: const EdgeInsets.only(bottom: 4),
-      child: ListTile(
-        leading: IconButton(
-          icon: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            transitionBuilder: (child, animation) =>
-                ScaleTransition(scale: animation, child: child),
-            child: Icon(
-              done ? Icons.check_circle : Icons.radio_button_unchecked,
-              key: ValueKey(done),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: IconButton(
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
+                child: Icon(
+                  done ? Icons.check_circle : Icons.radio_button_unchecked,
+                  key: ValueKey(done),
+                ),
+              ),
+              color: done ? theme.colorScheme.primary : null,
+              tooltip: done ? 'Снять выполнение' : 'Выполнить',
+              onPressed: done ? uncomplete : complete,
+            ),
+            title: Text(
+              step.title,
+              style: done
+                  ? TextStyle(
+                      decoration: TextDecoration.lineThrough,
+                      color: theme.colorScheme.onSurfaceVariant)
+                  : null,
+            ),
+            subtitle: Text(subtitleParts.join(' · ')),
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    _showStepDialog(context, ref,
+                        goalId: step.goalId, step: step);
+                  case 'substep':
+                    _showSubStepDialog(context, ref, stepId: step.id);
+                  case 'task':
+                    createTask();
+                  case 'uncomplete':
+                    uncomplete();
+                  case 'delete':
+                    deleteStep();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Text('Редактировать'),
+                ),
+                const PopupMenuItem(
+                  value: 'substep',
+                  child: Text('Добавить подшаг'),
+                ),
+                const PopupMenuItem(
+                  value: 'task',
+                  child: Text('Создать задачу'),
+                ),
+                if (done)
+                  const PopupMenuItem(
+                    value: 'uncomplete',
+                    child: Text('Снять выполнение'),
+                  ),
+                const PopupMenuItem(value: 'delete', child: Text('Удалить')),
+              ],
             ),
           ),
-          color: done ? theme.colorScheme.primary : null,
-          tooltip: done ? 'Снять выполнение' : 'Выполнить',
-          onPressed: done ? uncomplete : complete,
-        ),
-        title: Text(
-          step.title,
-          style: done
-              ? TextStyle(
-                  decoration: TextDecoration.lineThrough,
-                  color: theme.colorScheme.onSurfaceVariant)
-              : null,
-        ),
-        subtitle: Text(
-            '${difficultyLabel(step.difficulty)} · ${step.estimatedMinutes} мин · ~${step.expectedXp} XP'),
-        trailing: PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                _showStepDialog(context, ref,
-                    goalId: step.goalId, step: step);
-              case 'uncomplete':
-                uncomplete();
-              case 'delete':
-                deleteStep();
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(value: 'edit', child: Text('Редактировать')),
-            if (done)
-              const PopupMenuItem(
-                value: 'uncomplete',
-                child: Text('Снять выполнение'),
+          if (subSteps.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 8, 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final sub in subSteps) _SubStepRow(sub: sub),
+                ],
               ),
-            const PopupMenuItem(value: 'delete', child: Text('Удалить')),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
+}
+
+/// Строка подшага: чекбокс-переключатель, длинное нажатие — переименование,
+/// крестик — удаление.
+class _SubStepRow extends ConsumerWidget {
+  final GoalSubStep sub;
+  const _SubStepRow({required this.sub});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final repo = ref.read(goalRepositoryProvider);
+
+    Future<void> rename() async {
+      final controller = TextEditingController(text: sub.title);
+      final saved = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Переименовать подшаг'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Название'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Отмена'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Сохранить'),
+            ),
+          ],
+        ),
+      );
+      if (saved == true && controller.text.trim().isNotEmpty) {
+        await repo.renameSubStep(sub, controller.text.trim());
+      }
+      controller.dispose();
+    }
+
+    return InkWell(
+      onTap: () => repo.toggleSubStep(sub),
+      onLongPress: rename,
+      borderRadius: BorderRadius.circular(8),
+      child: Row(
+        children: [
+          Checkbox(
+            value: sub.done,
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            onChanged: (_) => repo.toggleSubStep(sub),
+          ),
+          Expanded(
+            child: Text(
+              sub.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                decoration: sub.done ? TextDecoration.lineThrough : null,
+                color: sub.done ? theme.colorScheme.onSurfaceVariant : null,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 16),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Удалить подшаг',
+            onPressed: () => repo.softDeleteSubStep(sub),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Диалог добавления подшага.
+Future<void> _showSubStepDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  required String stepId,
+}) async {
+  final controller = TextEditingController();
+  final saved = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Новый подшаг'),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        decoration: const InputDecoration(
+          labelText: 'Название подшага',
+          hintText: 'Небольшое действие внутри шага',
+        ),
+        onSubmitted: (_) => Navigator.pop(context, true),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Отмена'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Добавить'),
+        ),
+      ],
+    ),
+  );
+  if (saved == true && controller.text.trim().isNotEmpty) {
+    await ref
+        .read(goalRepositoryProvider)
+        .addSubStep(stepId: stepId, title: controller.text.trim());
+  }
+  controller.dispose();
 }
 
 /// Диалог добавления/редактирования шага. Если [step] задан — редактирование.

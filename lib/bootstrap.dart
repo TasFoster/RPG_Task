@@ -7,6 +7,7 @@ import 'app/router/app_router.dart';
 import 'core/database/app_database.dart';
 import 'core/database/database_provider.dart';
 import 'core/database/seed.dart';
+import 'core/gamification/ledger_reconciliation.dart';
 import 'core/notifications/notification_service.dart';
 import 'core/sync/supabase_init.dart';
 import 'features/onboarding/data/onboarding_service.dart';
@@ -31,6 +32,10 @@ Future<void> bootstrap() async {
     // Локальная БД (Drift) + начальные данные (профиль, стандартные оси).
     final db = AppDatabase();
     await seedDatabase(db);
+
+    // Автокоррекция журнала наград: неточности (расхождение с профилем)
+    // закрываются корректирующими записями при каждом запуске.
+    await LedgerReconciliation(db).reconcile();
 
     // Уведомления (Фаза 3). На web/неподдерживаемых платформах — no-op.
     final notifications = NotificationService();

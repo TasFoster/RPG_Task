@@ -106,6 +106,23 @@ class _HabitTile extends ConsumerWidget {
       }
     }
 
+    // Отмена случайного нажатия: снимает сегодняшнюю отметку и награду.
+    Future<void> uncomplete() async {
+      final undone =
+          await ref.read(rewardServiceProvider).uncompleteHabitToday(habit);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(undone
+                ? 'Отметка снята, награда возвращена'
+                : 'За сегодня отметки нет'),
+          ),
+        );
+      if (undone) await updateHomeWidgets(ref.read(databaseProvider));
+    }
+
     // Отметка задним числом: забыл или не успел отметить вчера.
     Future<void> completeYesterday() async {
       final yesterday = DateTime.now().subtract(const Duration(days: 1));
@@ -154,7 +171,8 @@ class _HabitTile extends ConsumerWidget {
               ),
             ),
             color: doneToday ? theme.colorScheme.primary : null,
-            onPressed: doneToday ? null : complete,
+            tooltip: doneToday ? 'Отменить отметку' : 'Выполнить',
+            onPressed: doneToday ? uncomplete : complete,
           ),
           onTap: () => context.push('/habit/${habit.id}'),
           title: Text(
@@ -201,6 +219,13 @@ class _HabitTile extends ConsumerWidget {
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) {
                   switch (value) {
+                    case 'edit':
+                      showDialog(
+                        context: context,
+                        builder: (_) => AddHabitDialog(habit: habit),
+                      );
+                    case 'undo':
+                      uncomplete();
                     case 'yesterday':
                       completeYesterday();
                     case 'delete':
@@ -208,6 +233,15 @@ class _HabitTile extends ConsumerWidget {
                   }
                 },
                 itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Text('Редактировать'),
+                  ),
+                  if (doneToday)
+                    const PopupMenuItem(
+                      value: 'undo',
+                      child: Text('Отменить отметку за сегодня'),
+                    ),
                   const PopupMenuItem(
                     value: 'yesterday',
                     child: Text('Отметить вчера'),

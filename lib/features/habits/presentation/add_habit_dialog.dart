@@ -7,20 +7,38 @@ import '../../../shared/utils/labels.dart';
 import '../../skills/data/skill_repository.dart';
 import '../data/habit_repository.dart';
 
-/// Диалог создания новой привычки.
+/// Диалог создания/редактирования привычки.
+/// Если [habit] задан — режим редактирования.
 class AddHabitDialog extends ConsumerStatefulWidget {
-  const AddHabitDialog({super.key});
+  final Habit? habit;
+  const AddHabitDialog({super.key, this.habit});
 
   @override
   ConsumerState<AddHabitDialog> createState() => _AddHabitDialogState();
 }
 
 class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
-  final _titleController = TextEditingController();
-  Frequency _frequency = Frequency.daily;
-  Difficulty _difficulty = Difficulty.auto;
-  String? _axisId;
+  late final TextEditingController _titleController;
+  late Frequency _frequency;
+  late Difficulty _difficulty;
+  late String? _axisId;
   TimeOfDay? _reminderTime;
+
+  bool get _isEditing => widget.habit != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final h = widget.habit;
+    _titleController = TextEditingController(text: h?.title ?? '');
+    _frequency = h?.frequency ?? Frequency.daily;
+    _difficulty = h?.difficulty ?? Difficulty.auto;
+    _axisId = h?.axisId;
+    final minutes = h?.reminderMinutes;
+    _reminderTime = minutes == null
+        ? null
+        : TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60);
+  }
 
   @override
   void dispose() {
@@ -39,17 +57,28 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) return;
-    await ref
-        .read(habitRepositoryProvider)
-        .addHabit(
-          title: title,
-          axisId: _axisId,
-          frequency: _frequency,
-          difficulty: _difficulty,
-          reminderMinutes: _reminderTime == null
-              ? null
-              : _reminderTime!.hour * 60 + _reminderTime!.minute,
-        );
+    final reminderMinutes = _reminderTime == null
+        ? null
+        : _reminderTime!.hour * 60 + _reminderTime!.minute;
+    final repo = ref.read(habitRepositoryProvider);
+    if (_isEditing) {
+      await repo.updateHabit(
+        id: widget.habit!.id,
+        title: title,
+        axisId: _axisId,
+        frequency: _frequency,
+        difficulty: _difficulty,
+        reminderMinutes: reminderMinutes,
+      );
+    } else {
+      await repo.addHabit(
+        title: title,
+        axisId: _axisId,
+        frequency: _frequency,
+        difficulty: _difficulty,
+        reminderMinutes: reminderMinutes,
+      );
+    }
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -58,7 +87,7 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
     final axesAsync = ref.watch(axesStreamProvider);
 
     return AlertDialog(
-      title: const Text('Новая привычка'),
+      title: Text(_isEditing ? 'Редактировать привычку' : 'Новая привычка'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -66,7 +95,7 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
           children: [
             TextField(
               controller: _titleController,
-              autofocus: true,
+              autofocus: !_isEditing,
               decoration: const InputDecoration(
                 labelText: 'Название',
                 hintText: 'Например: Зарядка утром',
@@ -152,7 +181,10 @@ class _AddHabitDialogState extends ConsumerState<AddHabitDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Отмена'),
         ),
-        FilledButton(onPressed: _save, child: const Text('Создать')),
+        FilledButton(
+          onPressed: _save,
+          child: Text(_isEditing ? 'Сохранить' : 'Создать'),
+        ),
       ],
     );
   }

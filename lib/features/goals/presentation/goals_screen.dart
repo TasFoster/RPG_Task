@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/models/enums.dart';
+import '../../../shared/utils/icons.dart';
+import '../../skills/data/skill_repository.dart';
 import '../data/goal_repository.dart';
 import 'goal_edit_dialog.dart';
 
@@ -14,6 +16,10 @@ class GoalsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goalsAsync = ref.watch(goalsStreamProvider);
+    final axesById = {
+      for (final a in ref.watch(axesStreamProvider).value ?? const <SkillAxe>[])
+        a.id: a,
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('Цели и боссы')),
@@ -45,7 +51,10 @@ class GoalsScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
             itemCount: goals.length,
             separatorBuilder: (_, _) => const SizedBox(height: 4),
-            itemBuilder: (context, i) => _GoalTile(goal: goals[i]),
+            itemBuilder: (context, i) => _GoalTile(
+              goal: goals[i],
+              axis: axesById[goals[i].axisId],
+            ),
           );
         },
       ),
@@ -55,7 +64,8 @@ class GoalsScreen extends ConsumerWidget {
 
 class _GoalTile extends ConsumerWidget {
   final Goal goal;
-  const _GoalTile({required this.goal});
+  final SkillAxe? axis;
+  const _GoalTile({required this.goal, this.axis});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,8 +112,12 @@ class _GoalTile extends ConsumerWidget {
                 )
               : null,
         ),
-        subtitle: goal.isBoss && !done
-            ? Padding(
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (goal.isBoss && !done)
+              Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
@@ -122,7 +136,35 @@ class _GoalTile extends ConsumerWidget {
                   ),
                 ),
               )
-            : Text(done ? 'Завершено' : 'Цель'),
+            else
+              Text(done ? 'Завершено' : 'Цель'),
+            if (axis != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      materialIcon(axis!.iconCodePoint),
+                      size: 13,
+                      color: Color(axis!.colorValue),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        axis!.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Color(axis!.colorValue),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
         trailing: PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (value) {

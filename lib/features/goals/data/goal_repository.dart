@@ -273,6 +273,7 @@ class GoalRepository {
 
   /// Мягкое удаление шага. HP пересчитывается, но цель НЕ закрывается:
   /// босс может быть повержен только выполнением шагов, а не их удалением.
+  /// Подшаги удаляются вместе с шагом.
   Future<void> softDeleteStep(GoalStep step) async {
     await (db.update(db.goalSteps)..where((s) => s.id.equals(step.id))).write(
       GoalStepsCompanion(
@@ -281,7 +282,75 @@ class GoalRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    await (db.update(db.goalSubSteps)
+          ..where((s) => s.stepId.equals(step.id)))
+        .write(GoalSubStepsCompanion(
+      isDeleted: const Value(true),
+      dirty: const Value(true),
+      updatedAt: Value(DateTime.now()),
+    ));
     await _recomputeHp(step.goalId);
+  }
+
+  // ---- Подшаги (чек-лист шага; наград не дают) ----
+
+  /// Все подшаги цели одним потоком (UI группирует по stepId).
+  Stream<List<GoalSubStep>> watchSubSteps(String goalId) {
+    final query = db.select(db.goalSubSteps).join([
+      innerJoin(
+          db.goalSteps, db.goalSteps.id.equalsExp(db.goalSubSteps.stepId)),
+    ])
+      ..where(db.goalSteps.goalId.equals(goalId) &
+          db.goalSubSteps.isDeleted.equals(false))
+      ..orderBy([OrderingTerm(expression: db.goalSubSteps.sortOrder)]);
+    return query
+        .watch()
+        .map((rows) =>
+            rows.map((r) => r.readTable(db.goalSubSteps)).toList());
+  }
+
+  Future<void> addSubStep({
+    required String stepId,
+    required String title,
+  }) async {
+    final existing = await (db.select(db.goalSubSteps)
+          ..where((s) => s.stepId.equals(stepId) & s.isDeleted.equals(false)))
+        .get();
+    await db.into(db.goalSubSteps).insert(
+          GoalSubStepsCompanion.insert(
+            id: _uuid.v4(),
+            stepId: stepId,
+            title: title,
+            sortOrder: Value(existing.length),
+          ),
+        );
+  }
+
+  Future<void> toggleSubStep(GoalSubStep sub) {
+    return (db.update(db.goalSubSteps)..where((s) => s.id.equals(sub.id)))
+        .write(GoalSubStepsCompanion(
+      done: Value(!sub.done),
+      dirty: const Value(true),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
+  Future<void> renameSubStep(GoalSubStep sub, String title) {
+    return (db.update(db.goalSubSteps)..where((s) => s.id.equals(sub.id)))
+        .write(GoalSubStepsCompanion(
+      title: Value(title),
+      dirty: const Value(true),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
+  Future<void> softDeleteSubStep(GoalSubStep sub) {
+    return (db.update(db.goalSubSteps)..where((s) => s.id.equals(sub.id)))
+        .write(GoalSubStepsCompanion(
+      isDeleted: const Value(true),
+      dirty: const Value(true),
+      updatedAt: Value(DateTime.now()),
+    ));
   }
 
   // ---- Внутреннее ----
@@ -373,4 +442,20 @@ final goalStreamProvider =
 final goalStepsStreamProvider =
     StreamProvider.family<List<GoalStep>, String>((ref, goalId) {
   return ref.watch(goalRepositoryProvider).watchSteps(goalId);
+});
+
+/// Подшаги всех шагов цели, сгруппированные по id шага.
+final goalSubStepsStreamProvider =
+    StreamProvider.family<Map<String, List<GoalSubStep>>, String>(
+        (ref, goalId) {
+  return ref
+      .watch(goalRepositoryProvider)
+      .watchSubSteps(goalId)
+      .map((subs) {
+    final map = <String, List<GoalSubStep>>{};
+    for (final s in subs) {
+      (map[s.stepId] ??= []).add(s);
+    }
+    return map;
+  });
 });
